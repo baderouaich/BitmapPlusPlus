@@ -31,12 +31,12 @@ int main(void)
 	return 0;
 }
 ```
-![image](image.bmp)
+![image](Images/image.bmp)
 
 <br>
 Load  Bitmap from file, Modify and Save
 
-![penguin](penguin.bmp)
+![penguin](Images/penguin.bmp)
 <br>
 ```cpp
 #include "BitmapPlusPlus.hpp"
@@ -61,7 +61,7 @@ int main(void)
 	return 0;
 }
 ```
-![modified-penguin](modified-penguin.bmp)
+![modified-penguin](Images/modified-penguin.bmp)
 
 
 ## Features and bugs

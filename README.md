@@ -31,11 +31,11 @@ int main(void)
 	return 0;
 }
 ```
-<br>
 ![image](image.bmp)
+
 <br>
 Load  Bitmap from file, Modify and Save
-<br>
+
 ![penguin](penguin.bmp)
 <br>
 ```cpp
@@ -61,7 +61,6 @@ int main(void)
 	return 0;
 }
 ```
-<br>
 ![modified-penguin](modified-penguin.bmp)
 
 

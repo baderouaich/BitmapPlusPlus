@@ -5,6 +5,7 @@ Simple and Fast header only Bitmap (BMP) library
 - 24 Bits Per Pixel
 
 ## Examples
+
 <h3>Random Pixel Colors</h3>
 <br>
 ```cpp

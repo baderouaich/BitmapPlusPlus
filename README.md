@@ -35,7 +35,7 @@ int main(void)
 
 <br><br>
 
-<h3>Mandelbrot Fractal Set</h3>
+<strong>Mandelbrot Fractal Set</strong>
 <br>
 ```cpp
 #include "BitmapPlusPlus.hpp"
@@ -92,7 +92,7 @@ int main(void)
 
 <br><br>
 
-<h3>Julia Fractal Set</h3>
+<strong>Julia Fractal Set</strong>
 <br>
 
 ```cpp
@@ -145,7 +145,7 @@ int main(void)
 
 <br><br>
 
-<h3>Modify Penguin</h3>
+<strong>Modify The Penguin</strong>
 <br>
 
 ```cpp

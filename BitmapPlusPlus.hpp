@@ -1,11 +1,12 @@
 #ifndef BITMAP_PLUSPLUS_H
 #define BITMAP_PLUSPLUS_H
 
-#include <cstdint>
-#include <fstream>
-#include <vector>
-#include <memory>
-
+#include <fstream>      // std::ofstream std::ifstream
+#include <vector>       // std::vector
+#include <memory>       // std::unique_ptr
+#include <algorithm>    // std::fill
+#include <cstdint>      // std::int32_t
+#include <cstring>      // std::memcmp
 
 namespace bmp
 {
@@ -51,9 +52,9 @@ namespace bmp
 
 	const Pixel Pixel::Black = { std::uint8_t(0), std::uint8_t(0), std::uint8_t(0) };
 	const Pixel Pixel::White = { std::uint8_t(255), std::uint8_t(255), std::uint8_t(255) };
-	const Pixel Pixel::Red   = { std::uint8_t(255), std::uint8_t(0), std::uint8_t(0) };
+	const Pixel Pixel::Red = { std::uint8_t(255), std::uint8_t(0), std::uint8_t(0) };
 	const Pixel Pixel::Green = { std::uint8_t(0), std::uint8_t(255), std::uint8_t(0) };
-	const Pixel Pixel::Blue  = { std::uint8_t(0), std::uint8_t(0), std::uint8_t(255) };
+	const Pixel Pixel::Blue = { std::uint8_t(0), std::uint8_t(0), std::uint8_t(255) };
 
 	//Supporting only 24 bits per pixel bmp type
 	static constexpr const auto BITMAP_BUFFER_TYPE = 0x4D42;
@@ -63,29 +64,35 @@ namespace bmp
 	public:
 		Bitmap() noexcept
 			:
-			m_pixels(), 
+			m_pixels(),
 			m_width(0),
 			m_height(0)
 		{}
 		Bitmap(std::int32_t width, std::int32_t height) noexcept
 			:
-			m_pixels(width * height),
+			m_pixels(width* height),
 			m_width(width),
 			m_height(height)
 		{}
-		~Bitmap()
+		Bitmap(const Bitmap& other) // Copy Constructor
+		{
+			this->m_width  = other.m_width;
+			this->m_height = other.m_height;
+			this->m_pixels = other.m_pixels;
+		}
+		virtual ~Bitmap()
 		{}
 
-	public: //Accessors
+	public:  /* Accessors */
 		/*
 		*	Returns the width of the Bitmap image
 		*/
-		constexpr std::int32_t Width() const noexcept { return m_width; }
+		const std::int32_t& Width() const noexcept { return m_width; }
 
 		/*
 		*	Returns the height of the Bitmap image
 		*/
-		constexpr std::int32_t Height() const noexcept { return m_height; }
+		const std::int32_t& Height() const noexcept { return m_height; }
 
 		/*
 		*	Clears Bitmap pixels with an rgb color
@@ -95,34 +102,32 @@ namespace bmp
 			std::fill(m_pixels.begin(), m_pixels.end(), v);
 		}
 
-		/*
-		*	Operators
-		*/
+	public: /* Operators */
 		const Pixel& operator[](const std::size_t i) const { return m_pixels[i]; }
 		Pixel& operator[](const std::size_t i) { return m_pixels[i]; }
 		bool operator!() const noexcept { return (m_pixels.size() == 0) || (m_width == 0) || (m_height == 0); }
 		constexpr bool operator==(const Bitmap& image) const
 		{
-			if(this != &image)
+			if (this != &image)
 				return
-					(m_width == image.m_width) &&
-					(m_height == image.m_height) &&
-					(memcmp(m_pixels.data(), image.m_pixels.data(), sizeof(Pixel) * m_pixels.size()) == 0);
+				(m_width == image.m_width) &&
+				(m_height == image.m_height) &&
+				(std::memcmp(m_pixels.data(), image.m_pixels.data(), sizeof(Pixel) * m_pixels.size()) == 0);
 			return true;
 		}
 		constexpr bool operator!=(const Bitmap& image) const { return !(*this == image); }
-		Bitmap& operator=(const Bitmap& image)
+		Bitmap& operator=(const Bitmap& image) // Move assignment operator
 		{
 			if (this != &image)
 			{
-				m_width = image.m_width;
+				m_width  = image.m_width;
 				m_height = image.m_height;
-				m_pixels = std::move(image.m_pixels);
+				m_pixels = image.m_pixels;
 			}
 			return *this;
 		}
 
-	public: //Modificators
+	public: /* Modifiers */
 		/*
 		*	Sets rgb color to pixel at position x,y
 		*	prints error message to stderr if x,y coords are out of bounds.
@@ -166,6 +171,11 @@ namespace bmp
 
 			if (std::ofstream ofs{ filename, std::ios_base::binary })
 			{
+				/*
+				* @Method 1: Causes problem: rgb values should be reversed to bgr
+				* ofs.write(reinterpret_cast<const char*>(m_pixels.data()), sizeof(Color) * m_pixels.size());
+				*/
+
 				//Write Header
 				ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
@@ -183,12 +193,6 @@ namespace bmp
 					}
 					ofs.write(reinterpret_cast<const char*>(line.data()), line.size());
 				}
-
-				
-				/*
-				* @Causes problem: rgb values should be reversed to bgr
-				* ofs.write(reinterpret_cast<const char*>(m_pixels.data()), sizeof(Color) * m_pixels.size());
-				*/
 
 				//Close File
 				ofs.close();
@@ -269,13 +273,7 @@ namespace bmp
 			}
 		}
 
-	private:
-		std::vector<Pixel> m_pixels;
-		std::int32_t m_width{ 0 };
-		std::int32_t m_height{ 0 };
-
-
-	private: //Utils
+	private: /* Utils */
 		/*
 		*	Converts 2D x,y coords into 1D index
 		*/
@@ -300,6 +298,11 @@ namespace bmp
 			return x >= 1.0 ? 255 : x <= 0.0 ? 0 : static_cast<std::uint8_t>(x * 255.0 + 0.5);
 		}
 
+
+	private:
+		std::vector<Pixel> m_pixels;
+		std::int32_t m_width;
+		std::int32_t m_height;
 	};
 }
 #endif // !BITMAP_PLUSPLUS_H

@@ -6,7 +6,19 @@
 #include <memory>       // std::unique_ptr
 #include <algorithm>    // std::fill
 #include <cstdint>      // std::int32_t
+#include <string>		// std::string
 #include <cstring>      // std::memcmp
+
+// nodiscard attribute
+#if defined(_MSC_VER) && (_MSC_VER >= 1700) // > (Visual Studio 2012) 
+#define BMP_NODISCARD _Check_return_ 
+#elif defined(__GNUC__) || defined(__GNUG__) // gcc
+#define BMP_NODISCARD __attribute__((warn_unused_result))
+#elif defined(__clang__)	// clang
+#define BMP_NODISCARD __attribute__((warn_unused_result))
+#else	// other
+#define BMP_NODISCARD
+#endif
 
 namespace bmp
 {
@@ -50,14 +62,26 @@ namespace bmp
 #pragma pack(pop)
 
 
-	const Pixel Pixel::Black = { std::uint8_t(0), std::uint8_t(0), std::uint8_t(0) };
-	const Pixel Pixel::White = { std::uint8_t(255), std::uint8_t(255), std::uint8_t(255) };
-	const Pixel Pixel::Red = { std::uint8_t(255), std::uint8_t(0), std::uint8_t(0) };
-	const Pixel Pixel::Green = { std::uint8_t(0), std::uint8_t(255), std::uint8_t(0) };
-	const Pixel Pixel::Blue = { std::uint8_t(0), std::uint8_t(0), std::uint8_t(255) };
+	const Pixel Pixel::Black = { std::uint8_t(0),	std::uint8_t(0),	std::uint8_t(0) };
+	const Pixel Pixel::White = { std::uint8_t(255),	std::uint8_t(255),	std::uint8_t(255) };
+	const Pixel Pixel::Red = { std::uint8_t(255),	std::uint8_t(0),	std::uint8_t(0) };
+	const Pixel Pixel::Green = { std::uint8_t(0),	std::uint8_t(255),	std::uint8_t(0) };
+	const Pixel Pixel::Blue = { std::uint8_t(0),	std::uint8_t(0),	std::uint8_t(255) };
 
 	//Supporting only 24 bits per pixel bmp type
 	static constexpr const auto BITMAP_BUFFER_TYPE = 0x4D42;
+
+	class BitmapException : public std::exception
+	{
+	public:
+		BitmapException() noexcept
+			:
+			exception() {}
+
+		explicit BitmapException(const std::string& message) noexcept
+			:
+			exception(message.c_str()) {}
+	};
 
 	class Bitmap
 	{
@@ -68,31 +92,36 @@ namespace bmp
 			m_width(0),
 			m_height(0)
 		{}
-		Bitmap(std::int32_t width, std::int32_t height) noexcept
+		Bitmap(std::int32_t width, std::int32_t height)
 			:
-			m_pixels(width* height),
+			m_pixels(width * height),
 			m_width(width),
 			m_height(height)
-		{}
-		Bitmap(const Bitmap& other) // Copy Constructor
 		{
-			this->m_width  = other.m_width;
-			this->m_height = other.m_height;
-			this->m_pixels = other.m_pixels;
+			if (width == 0 || height == 0)
+				throw BitmapException("Bitmap width and height must be > 0");
 		}
-		virtual ~Bitmap()
+		Bitmap(const Bitmap& other) // Copy Constructor
+			:
+			m_width(other.m_width),
+			m_height(other.m_height),
+			m_pixels(other.m_pixels)
 		{}
+		virtual ~Bitmap()
+		{
+			m_pixels.clear();
+		}
 
 	public:  /* Accessors */
 		/*
 		*	Returns the width of the Bitmap image
 		*/
-		const std::int32_t& Width() const noexcept { return m_width; }
+		BMP_NODISCARD const std::int32_t& Width() const noexcept { return m_width; }
 
 		/*
 		*	Returns the height of the Bitmap image
 		*/
-		const std::int32_t& Height() const noexcept { return m_height; }
+		BMP_NODISCARD const std::int32_t& Height() const noexcept { return m_height; }
 
 		/*
 		*	Clears Bitmap pixels with an rgb color
@@ -109,10 +138,12 @@ namespace bmp
 		constexpr bool operator==(const Bitmap& image) const
 		{
 			if (this != &image)
+			{
 				return
-				(m_width == image.m_width) &&
-				(m_height == image.m_height) &&
-				(std::memcmp(m_pixels.data(), image.m_pixels.data(), sizeof(Pixel) * m_pixels.size()) == 0);
+					(m_width == image.m_width) &&
+					(m_height == image.m_height) &&
+					(std::memcmp(m_pixels.data(), image.m_pixels.data(), sizeof(Pixel) * m_pixels.size()) == 0);
+			}
 			return true;
 		}
 		constexpr bool operator!=(const Bitmap& image) const { return !(*this == image); }
@@ -120,9 +151,9 @@ namespace bmp
 		{
 			if (this != &image)
 			{
-				m_width  = image.m_width;
-				m_height = image.m_height;
-				m_pixels = image.m_pixels;
+				m_width  = std::move(image.m_width);
+				m_height = std::move(image.m_height);
+				m_pixels = std::move(image.m_pixels);
 			}
 			return *this;
 		}
@@ -132,12 +163,11 @@ namespace bmp
 		*	Sets rgb color to pixel at position x,y
 		*	prints error message to stderr if x,y coords are out of bounds.
 		*/
-		void Set(std::int32_t x, std::int32_t y, const Pixel& color) noexcept
+		void Set(std::int32_t x, std::int32_t y, const Pixel& color)
 		{
 			if (!inBounds(x, y))
 			{
-				fprintf(stderr, "[BMP ERROR]: Bitmap::Set(%d, %d) out of bounds.\n", x, y);
-				return;
+				throw BitmapException("Bitmap::Set(" + std::to_string(x) + ", " + std::to_string(y) + ") out of bounds");
 			}
 			m_pixels[IX(x, y)] = color;
 		}
@@ -201,8 +231,7 @@ namespace bmp
 			}
 			else
 			{
-				fprintf(stderr, "[Bitmap ERROR]: Bitmap::Save(\"%s\") Failed to save data to file.\n", filename.c_str());
-				return false;
+				throw BitmapException("Bitmap::Save(\"" + filename + "\") Failed to save data to file.");
 			}
 		}
 
@@ -224,18 +253,15 @@ namespace bmp
 				if (header->type != BITMAP_BUFFER_TYPE)
 				{
 					ifs.close();
-					fprintf(stderr, "[Bitmap ERROR]: Bitmap::Load(\"%s\") Unrecognized file format.\n", filename.c_str());
-					return false;
+					throw BitmapException("Bitmap::Load(\"" + filename + "\") Unrecognized file format.");
 
 				}
 				//Check if the Bitmap file has 24 bits per pixel
 				if (header->bits_per_pixel != 24)
 				{
 					ifs.close();
-					fprintf(stderr, "[Bitmap ERROR]: Bitmap::Load(\"%s\") Only 24 bits per pixel supported.\n", filename.c_str());
-					return false;
+					throw BitmapException("Bitmap::Load(\"" + filename + "\") Only 24 bits per pixel supported.");
 				}
-
 
 				//Set width & height 
 				m_width = header->width;
@@ -268,8 +294,7 @@ namespace bmp
 			}
 			else
 			{
-				fprintf(stderr, "[Bitmap ERROR]: Bitmap::Load(\"%s\") Failed to load Bitmap from file.\n", filename.c_str());
-				return false;
+				throw BitmapException("Bitmap::Load(\"" + filename + "\") Failed to load Bitmap from file.");
 			}
 		}
 

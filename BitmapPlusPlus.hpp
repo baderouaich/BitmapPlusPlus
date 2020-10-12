@@ -6,8 +6,9 @@
 #include <memory>       // std::unique_ptr
 #include <algorithm>    // std::fill
 #include <cstdint>      // std::int32_t
-#include <string>		// std::string
+#include <string>       // std::string
 #include <cstring>      // std::memcmp
+#include <exception>    // std::exception
 
 // nodiscard attribute
 #if defined(_MSC_VER) && (_MSC_VER >= 1700) // > (Visual Studio 2012) 
@@ -61,12 +62,11 @@ namespace bmp
 	static_assert(sizeof(Pixel) == 3, "Bitmap Pixel size must be 3 bytes");
 #pragma pack(pop)
 
-
-	const Pixel Pixel::Black = { std::uint8_t(0),	std::uint8_t(0),	std::uint8_t(0) };
-	const Pixel Pixel::White = { std::uint8_t(255),	std::uint8_t(255),	std::uint8_t(255) };
-	const Pixel Pixel::Red = { std::uint8_t(255),	std::uint8_t(0),	std::uint8_t(0) };
-	const Pixel Pixel::Green = { std::uint8_t(0),	std::uint8_t(255),	std::uint8_t(0) };
-	const Pixel Pixel::Blue = { std::uint8_t(0),	std::uint8_t(0),	std::uint8_t(255) };
+	const Pixel Pixel::Black	= {		std::uint8_t(0),	std::uint8_t(0),	std::uint8_t(0)		};
+	const Pixel Pixel::White	= {		std::uint8_t(255),	std::uint8_t(255),	std::uint8_t(255)	};
+	const Pixel Pixel::Red		= {		std::uint8_t(255),	std::uint8_t(0),	std::uint8_t(0)		};
+	const Pixel Pixel::Green	= {		std::uint8_t(0),	std::uint8_t(255),	std::uint8_t(0)		};
+	const Pixel Pixel::Blue		= {		std::uint8_t(0),	std::uint8_t(0),	std::uint8_t(255)	};
 
 	//Supporting only 24 bits per pixel bmp type
 	static constexpr const auto BITMAP_BUFFER_TYPE = 0x4D42;
@@ -74,13 +74,11 @@ namespace bmp
 	class BitmapException : public std::exception
 	{
 	public:
-		BitmapException() noexcept
-			:
-			exception() {}
+		BitmapException(const std::string& message) : m_msg(message) { }
+		virtual const char* what() const noexcept { return m_msg.c_str(); }
 
-		explicit BitmapException(const std::string& message) noexcept
-			:
-			exception(message.c_str()) {}
+	private:
+		std::string m_msg;
 	};
 
 	class Bitmap
@@ -151,7 +149,7 @@ namespace bmp
 		{
 			if (this != &image)
 			{
-				m_width  = std::move(image.m_width);
+				m_width = std::move(image.m_width);
 				m_height = std::move(image.m_height);
 				m_pixels = std::move(image.m_pixels);
 			}

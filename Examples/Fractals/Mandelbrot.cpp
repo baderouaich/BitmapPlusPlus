@@ -1,5 +1,6 @@
 #include "BitmapPlusPlus.hpp"
 #include "ColorMaps.inl"
+#include <cmath>
 
 int main(void)
 {

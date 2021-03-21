@@ -112,6 +112,30 @@ namespace bmp
 
 	public:  /* Accessors */
 		/*
+		*	Get pixel at position x,y
+		*/
+		Pixel& Get(const std::int32_t x, const std::int32_t y)
+		{
+			if (!inBounds(x, y))
+			{
+				throw BitmapException("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + ") out of bounds");
+			}
+			return m_pixels[IX(x, y)];
+		}
+		
+		/*
+		*	Get const pixel at position x,y
+		*/
+		const Pixel& Get(const std::int32_t x, const std::int32_t y) const
+		{
+			if (!inBounds(x, y))
+			{
+				throw BitmapException("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + ") out of bounds");
+			}
+			return m_pixels[IX(x, y)];
+		}
+
+		/*
 		*	Returns the width of the Bitmap image
 		*/
 		BMP_NODISCARD const std::int32_t& Width() const noexcept { return m_width; }

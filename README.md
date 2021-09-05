@@ -2,7 +2,7 @@
 Simple and Fast header only Bitmap (BMP) library
 
 ## Bitmap Type Supported
-- 24 Bits Per Pixel
+- 24 Bits Per Pixel (RGB)
 
 ## Examples
 <strong>Random Pixel Colors</strong>
@@ -178,8 +178,7 @@ int main(void)
 {
 	try
 	{
-		bmp::Bitmap image;
-		image.Load("penguin.bmp");
+		bmp::Bitmap image("penguin.bmp");
 		// Modify loaded image (makes half of the image black)
 		for (std::int32_t y = 0; y < image.Height(); ++y)
 		{

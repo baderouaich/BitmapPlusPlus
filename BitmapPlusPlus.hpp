@@ -6,14 +6,15 @@
 #include <vector>       // std::vector
 #include <memory>       // std::unique_ptr
 #include <algorithm>    // std::fill
-#include <cstdint>      // std::int32_t
+#include <cstdint>      // std::int*_t
+#include <cstddef>		// std::size_t
 #include <string>       // std::string
 #include <cstring>      // std::memcmp
 #include <exception>    // std::exception
 
 namespace bmp
 {
-	// Magic number for Bitmap .bmp files
+	// Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)
 	static constexpr const std::uint16_t BITMAP_BUFFER_MAGIC = 0x4D42;
 
 #pragma pack(push, 1)
@@ -78,6 +79,14 @@ namespace bmp
 			m_width(0),
 			m_height(0)
 		{}
+		Bitmap(const std::string& filename)
+			:
+			m_pixels(),
+			m_width(0),
+			m_height(0)
+		{
+			Load(filename);
+		}
 		Bitmap(const std::int32_t width, const std::int32_t height)
 			:
 			m_pixels(static_cast<std::size_t>(width) * static_cast<std::size_t>(height)),
@@ -105,7 +114,7 @@ namespace bmp
 		Pixel& Get(const std::int32_t x, const std::int32_t y)
 		{
 			if (!inBounds(x, y))
-				throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + ") out of bounds");
+				throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
 			return m_pixels[IX(x, y)];
 		}
 
@@ -115,7 +124,7 @@ namespace bmp
 		const Pixel& Get(const std::int32_t x, const std::int32_t y) const
 		{
 			if (!inBounds(x, y))
-				throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + ") out of bounds");
+				throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
 			return m_pixels[IX(x, y)];
 		}
 
@@ -184,7 +193,7 @@ namespace bmp
 		{
 			if (!inBounds(x, y))
 			{
-				throw Exception("Bitmap::Set(" + std::to_string(x) + ", " + std::to_string(y) + ") out of bounds");
+				throw Exception("Bitmap::Set(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
 			}
 			m_pixels[IX(x, y)] = color;
 		}
@@ -195,32 +204,36 @@ namespace bmp
 		*/
 		void Save(const std::string& filename)
 		{
+			// Calculate row and bitmap size
 			const std::int32_t  row_size = m_width * 3 + m_width % 4;
 			const std::uint32_t bitmap_size = row_size * m_height;
-			const BitmapHeader header =
-			{
-				BITMAP_BUFFER_MAGIC,
-				bitmap_size + sizeof(BitmapHeader),
-				0,
-				0,
-				sizeof(BitmapHeader),
-				40,
-				m_width,
-				m_height,
-				1,
-				24,
-				0,
-				bitmap_size,
-				0,
-				0,
-				0,
-				0
-			};
 
-			if (std::ofstream ofs{ filename, std::ios::out | std::ios::binary })
+			// Construct bitmap header
+			BitmapHeader header{};
+			/* Bitmap file header structure */
+			header.magic = BITMAP_BUFFER_MAGIC;
+			header.file_size = bitmap_size + sizeof(BitmapHeader);
+			header.reserved1 = 0;
+			header.reserved2 = 0;
+			header.offset_bits = sizeof(BitmapHeader);
+			/* Bitmap file info structure */
+			header.size = 40;
+			header.width = m_width;
+			header.height = m_height;
+			header.planes = 1;
+			header.bits_per_pixel = sizeof(Pixel) * 8; // 24bpp
+			header.compression = 0;
+			header.size_image = bitmap_size;
+			header.xpels_per_meter = 0;
+			header.ypels_per_meter = 0;
+			header.clr_used = 0;
+			header.clr_important = 0;
+
+			// Save bitmap to output file
+			if (std::ofstream ofs{ filename, std::ios::binary })
 			{
 				// Write Header
-				ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+				ofs.write(reinterpret_cast<const char*>(&header), sizeof(BitmapHeader));
 
 				// Write Pixels
 				std::vector<std::uint8_t> line(row_size);
@@ -241,7 +254,7 @@ namespace bmp
 				ofs.close();
 			}
 			else
-				throw Exception("Bitmap::Save(\"" + filename + "\") Failed to save data to file.");
+				throw Exception("Bitmap::Save(\"" + filename + "\"): Failed to save pixels to file.");
 		}
 
 		/**
@@ -255,21 +268,21 @@ namespace bmp
 			if (std::ifstream ifs{ filename, std::ios::binary })
 			{
 				// Read Header
-				auto header = std::make_unique<BitmapHeader>();
+				std::unique_ptr<BitmapHeader> header(new BitmapHeader());
 				ifs.read(reinterpret_cast<char*>(header.get()), sizeof(BitmapHeader));
 
 				// Check if Bitmap file is valid
 				if (header->magic != BITMAP_BUFFER_MAGIC)
 				{
 					ifs.close();
-					throw Exception("Bitmap::Load(\"" + filename + "\") Unrecognized file format.");
+					throw Exception("Bitmap::Load(\"" + filename + "\"): Unrecognized file format.");
 
 				}
 				// Check if the Bitmap file has 24 bits per pixel (for now supporting only 24bpp bitmaps)
 				if (header->bits_per_pixel != 24)
 				{
 					ifs.close();
-					throw Exception("Bitmap::Load(\"" + filename + "\") Only 24 bits per pixel supported.");
+					throw Exception("Bitmap::Load(\"" + filename + "\"): Only 24 bits per pixel bitmaps supported.");
 				}
 
 				// Set width & height 
@@ -288,11 +301,11 @@ namespace bmp
 					std::size_t i = 0;
 					for (std::int32_t x = 0; x < m_width; ++x)
 					{
-						Pixel color;
+						Pixel color{};
 						color.b = line[i++];
 						color.g = line[i++];
 						color.r = line[i++];
-						this->Set(x, y, color);
+						m_pixels[IX(x, y)] = color; //this->Set(x, y, color);
 					}
 				}
 
@@ -300,7 +313,7 @@ namespace bmp
 				ifs.close();
 			}
 			else
-				throw Exception("Bitmap::Load(\"" + filename + "\") Failed to load Bitmap from file.");
+				throw Exception("Bitmap::Load(\"" + filename + "\"): Failed to load bitmap pixels from file.");
 		}
 
 	private: /* Utils */

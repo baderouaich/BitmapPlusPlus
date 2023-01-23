@@ -12,32 +12,42 @@ Simple and Fast header only Bitmap (BMP) library
 #include <random>
 #include <iostream>
 
-static bmp::Pixel random_pixel()
+static bmp::Pixel random_color()
 {
 	static std::random_device seed{};
-	static std::default_random_engine engine{ seed() };
+	static std::default_random_engine engine{seed()};
 	std::uniform_int_distribution<std::int32_t> dist(0, 255);
-	return bmp::Pixel(static_cast<std::uint8_t>(dist(engine)), static_cast<std::uint8_t>(dist(engine)), static_cast<std::uint8_t>(dist(engine)));
+	bmp::Pixel color{};
+	color.r = dist(engine);
+	color.g = dist(engine);
+	color.b = dist(engine);
+	return color;
 }
 
 int main(void)
 {
 	try
 	{
+		// Create a 512x512 bitmap
 		bmp::Bitmap image(512, 512);
-		for (bmp::Pixel& pixel : image)
+
+		// Assign a random color to each pixel in the image
+		for (bmp::Pixel &pixel : image)
 		{
-			pixel = random_pixel();
+			pixel = random_color();
 		}
-		image.Save("image.bmp");
+
+		// Save bitmap to new file image.bmp
+		image.save("image.bmp");
+
+		// And Voila!
+		return EXIT_SUCCESS;
 	}
-	catch (const bmp::Exception& e)
+	catch (const bmp::Exception &e)
 	{
 		std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	return EXIT_SUCCESS;
 }
 ```
 ![random](Images/random.bmp)
@@ -49,6 +59,7 @@ int main(void)
 ```cpp
 #include "BitmapPlusPlus.hpp"
 #include "ColorMaps.inl"
+#include <iostream>
 
 int main(void)
 {
@@ -61,12 +72,12 @@ int main(void)
         double prevr, previ;
         constexpr const std::uint16_t max_iterations = 3000;
 
-        for (std::int32_t y = 0; y < image.Height(); ++y)
+        for (std::int32_t y = 0; y < image.height(); ++y)
         {
-            for (std::int32_t x = 0; x < image.Width(); ++x)
+            for (std::int32_t x = 0; x < image.width(); ++x)
             {
-                cr = 1.5 * (2.0 * x / image.Width() - 1.0) - 0.5;
-                ci = (2.0 * y / image.Height() - 1.0);
+                cr = 1.5 * (2.0 * x / image.width() - 1.0) - 0.5;
+                ci = (2.0 * y / image.height() - 1.0);
 
                 nextr = nexti = 0;
                 prevr = previ = 0;
@@ -94,7 +105,7 @@ int main(void)
             }
         }
 
-        image.Save("mandelbrot.bmp");
+        image.save("mandelbrot.bmp");
     }
     catch (const bmp::Exception& e)
     {
@@ -114,6 +125,7 @@ int main(void)
 ```cpp
 #include "BitmapPlusPlus.hpp"
 #include "ColorMaps.inl"
+#include <iostream>
 
 int main(void)
 {
@@ -128,12 +140,12 @@ int main(void)
 
         double prevr, previ;
 
-        for (std::int32_t y = 0; y < image.Height(); ++y)
+        for (std::int32_t y = 0; y < image.height(); ++y)
         {
-            for (std::int32_t x = 0; x < image.Width(); ++x)
+            for (std::int32_t x = 0; x < image.width(); ++x)
             {
-                double nextr = 1.5 * (2.0 * x / image.Width() - 1.0);
-                double nexti = (2.0 * y / image.Height() - 1.0);
+                double nextr = 1.5 * (2.0 * x / image.width() - 1.0);
+                double nexti = (2.0 * y / image.height() - 1.0);
 
                 for (std::uint16_t i = 0; i < max_iterations; ++i)
                 {
@@ -146,14 +158,14 @@ int main(void)
                     if (((nextr * nextr) + (nexti * nexti)) > 4)
                     {
                         const bmp::Pixel color = hsv_colormap[static_cast<std::size_t>((1000.0 * i) / max_iterations)];
-                        image.Set(x, y, color);
+                        image.set(x, y, color);
                         break;
                     }
                 }
             }
         }
 
-        image.Save("julia.bmp");
+        image.save("julia.bmp");
     }
     catch (const bmp::Exception& e)
     {
@@ -173,6 +185,7 @@ int main(void)
 
 ```cpp
 #include "BitmapPlusPlus.hpp"
+#include <iostream>
 
 int main(void)
 {
@@ -180,15 +193,15 @@ int main(void)
 	{
 		bmp::Bitmap image("penguin.bmp");
 		// Modify loaded image (makes half of the image black)
-		for (std::int32_t y = 0; y < image.Height(); ++y)
+		for (std::int32_t y = 0; y < image.height(); ++y)
 		{
-			for (std::int32_t x = 0; x < image.Width() / 2; ++x)
+			for (std::int32_t x = 0; x < image.width() / 2; ++x)
 			{
-				image.Set(x, y, bmp::Black);
+				image.set(x, y, bmp::Black);
 			}
 		}
-		//Save
-		image.Save("modified-penguin.bmp");
+		// Save bitmap to file
+		image.save("modified-penguin.bmp");
 	}
 	catch (const bmp::Exception& e)
 	{
@@ -202,9 +215,62 @@ int main(void)
 ![modified-penguin](Images/modified-penguin.bmp)
 
 
+<br><br>
+
+<strong>Modify The Penguin</strong>
+<br>
+
+```cpp
+#include <iostream>
+#include "BitmapPlusPlus.hpp"
+
+int main()
+{
+    try
+    {
+        // 8x8 chess board
+        bmp::Bitmap image(640, 640);
+        const std::size_t board_dims = 8;
+        const std::size_t rect_w = image.width() / board_dims;
+        const std::size_t rect_h = image.height() / board_dims;
+
+        // Iterate over rects
+        bool is_white = true;
+        for (std::size_t x = 0; x < image.width(); x += rect_w)
+        {
+            for (std::size_t y = 0; y < image.height(); y += rect_h)
+            {
+                bmp::Pixel color = is_white ? bmp::White : bmp::Black;
+                // Fill rect
+                for (size_t dx = x; dx < x + rect_w; dx++)
+                {
+                    for (size_t dy = y; dy < y + rect_h; dy++)
+                    {
+                        image.set(dx, dy, color);
+                    }
+                }
+                is_white = !is_white;
+            }
+            is_white = !is_white;
+        }
+
+        // Save bitmap to file
+        image.save("chess_board.bmp");
+
+        return EXIT_SUCCESS;
+    }
+    catch (const bmp::Exception &e)
+    {
+        std::cerr << "[BMP ERROR]: " << e.what() << '\n';
+        return EXIT_FAILURE;
+    }
+}
+```
+![chess_board](Images/chess_board.bmp)
+
 ## Features and bugs
 If you face any problems feel free to open an issue at the [issue tracker][tracker]. If you feel the library is missing a feature, please raise a ticket on Github. Pull request are also welcome.
 
-[tracker]: https://github.com/BaderEddineOuaich/BitmapPlusPlus/issues
+[tracker]: https://github.com/baderouaich/BitmapPlusPlus/issues
 
 

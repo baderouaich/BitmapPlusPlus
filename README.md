@@ -50,7 +50,7 @@ int main(void)
 	}
 }
 ```
-![random](Images/random.bmp)
+![random](images/random.bmp)
 
 <br><br>
 
@@ -115,7 +115,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 ```
-![mandelbrot](Images/mandelbrot.bmp)
+![mandelbrot](images/mandelbrot.bmp)
 
 <br><br>
 
@@ -175,7 +175,7 @@ int main(void)
     return EXIT_SUCCESS;
 }
 ```
-![julia](Images/julia.bmp)
+![julia](images/julia.bmp)
 
 
 <br><br>
@@ -211,13 +211,13 @@ int main(void)
 	return EXIT_SUCCESS;
 }
 ```
-![penguin](Images/penguin.bmp)
-![modified-penguin](Images/modified-penguin.bmp)
+![penguin](images/penguin.bmp)
+![modified-penguin](images/modified-penguin.bmp)
 
 
 <br><br>
 
-<strong>Modify The Penguin</strong>
+<strong>Chess Board</strong>
 <br>
 
 ```cpp
@@ -234,7 +234,7 @@ int main()
         const std::size_t rect_w = image.width() / board_dims;
         const std::size_t rect_h = image.height() / board_dims;
 
-        // Iterate over rects
+        // Iterate over rectangles
         bool is_white = true;
         for (std::size_t x = 0; x < image.width(); x += rect_w)
         {
@@ -249,9 +249,9 @@ int main()
                         image.set(dx, dy, color);
                     }
                 }
-                is_white = !is_white;
+                is_white = !is_white; // flip flop
             }
-            is_white = !is_white;
+            is_white = !is_white; // flip flop
         }
 
         // Save bitmap to file
@@ -266,7 +266,7 @@ int main()
     }
 }
 ```
-![chess_board](Images/chess_board.bmp)
+![chess_board](images/chess_board.bmp)
 
 ## Features and bugs
 If you face any problems feel free to open an issue at the [issue tracker][tracker]. If you feel the library is missing a feature, please raise a ticket on Github. Pull request are also welcome.

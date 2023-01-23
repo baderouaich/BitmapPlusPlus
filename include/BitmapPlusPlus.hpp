@@ -5,12 +5,12 @@
 #include <fstream>	 // std::ofstream std::ifstream
 #include <vector>	 // std::vector
 #include <memory>	 // std::unique_ptr
-#include <algorithm> // std::fill
+#include <algorithm>     // std::fill
 #include <cstdint>	 // std::int*_t
 #include <cstddef>	 // std::size_t
 #include <string>	 // std::string
 #include <cstring>	 // std::memcmp
-#include <exception> // std::exception
+#include <exception>     // std::exception
 
 namespace bmp
 {
@@ -21,23 +21,23 @@ namespace bmp
 	struct BitmapHeader
 	{
 		/* Bitmap file header structure */
-		std::uint16_t magic;	      /* Magic number for file always BM which is 0x4D42 */
-		std::uint32_t file_size;      /* Size of file */
-		std::uint16_t reserved1;      /* Reserved */
-		std::uint16_t reserved2;      /* Reserved */
-		std::uint32_t offset_bits;    /* Offset to bitmap data */
+		std::uint16_t magic;	          /* Magic number for file always BM which is 0x4D42 */
+		std::uint32_t file_size;          /* Size of file */
+		std::uint16_t reserved1;          /* Reserved */
+		std::uint16_t reserved2;          /* Reserved */
+		std::uint32_t offset_bits;        /* Offset to bitmap data */
 		/* Bitmap file info structure */
-		std::uint32_t size;			  /* Size of info header */
-		std::int32_t width;			  /* Width of image */
+		std::uint32_t size;		  /* Size of info header */
+		std::int32_t width;		  /* Width of image */
 		std::int32_t height;		  /* Height of image */
 		std::uint16_t planes;		  /* Number of color planes */
-		std::uint16_t bits_per_pixel; /* Number of bits per pixel */
+		std::uint16_t bits_per_pixel;     /* Number of bits per pixel */
 		std::uint32_t compression;	  /* Type of compression to use */
 		std::uint32_t size_image;	  /* Size of image data */
-		std::int32_t xpels_per_meter; /* X pixels per meter */
-		std::int32_t ypels_per_meter; /* Y pixels per meter */
+		std::int32_t xpels_per_meter;     /* X pixels per meter */
+		std::int32_t ypels_per_meter;     /* Y pixels per meter */
 		std::uint32_t clr_used;		  /* Number of colors used */
-		std::uint32_t clr_important;  /* Number of important colors */
+		std::uint32_t clr_important;      /* Number of important colors */
 	};
 	static_assert(sizeof(BitmapHeader) == 54, "Bitmap header size must be 54 bytes");
 
@@ -339,8 +339,7 @@ namespace bmp
 		 */
 		constexpr std::uint8_t toUint8(const double x) noexcept
 		{
-			return x >= 1.0 ? 255 : x <= 0.0 ? 0
-											 : static_cast<std::uint8_t>(x * 255.0 + 0.5);
+			return x >= 1.0 ? 255 : x <= 0.0 ? 0 : static_cast<std::uint8_t>(x * 255.0 + 0.5);
 		}
 
 	private:

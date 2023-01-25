@@ -2,15 +2,15 @@
 #ifndef BITMAP_PLUSPLUS_H
 #define BITMAP_PLUSPLUS_H
 
-#include <fstream>	 // std::ofstream std::ifstream
-#include <vector>	 // std::vector
-#include <memory>	 // std::unique_ptr
-#include <algorithm>     // std::fill
-#include <cstdint>	 // std::int*_t
-#include <cstddef>	 // std::size_t
-#include <string>	 // std::string
-#include <cstring>	 // std::memcmp
-#include <exception>     // std::exception
+#include <fstream>   // std::*fstream
+#include <vector>    // std::vector
+#include <memory>    // std::unique_ptr
+#include <algorithm> // std::fill
+#include <cstdint>   // std::int*_t
+#include <cstddef>   // std::size_t
+#include <string>    // std::string
+#include <cstring>   // std::memcmp
+#include <exception> // std::exception
 
 namespace bmp
 {
@@ -21,40 +21,38 @@ namespace bmp
 	struct BitmapHeader
 	{
 		/* Bitmap file header structure */
-		std::uint16_t magic;	          /* Magic number for file always BM which is 0x4D42 */
-		std::uint32_t file_size;          /* Size of file */
-		std::uint16_t reserved1;          /* Reserved */
-		std::uint16_t reserved2;          /* Reserved */
-		std::uint32_t offset_bits;        /* Offset to bitmap data */
+		std::uint16_t magic;           /* Magic number for file always BM which is 0x4D42 */
+		std::uint32_t file_size;       /* Size of file */
+		std::uint16_t reserved1;       /* Reserved */
+		std::uint16_t reserved2;       /* Reserved */
+		std::uint32_t offset_bits;     /* Offset to bitmap data */
 		/* Bitmap file info structure */
-		std::uint32_t size;		  /* Size of info header */
-		std::int32_t width;		  /* Width of image */
-		std::int32_t height;		  /* Height of image */
-		std::uint16_t planes;		  /* Number of color planes */
-		std::uint16_t bits_per_pixel;     /* Number of bits per pixel */
-		std::uint32_t compression;	  /* Type of compression to use */
-		std::uint32_t size_image;	  /* Size of image data */
-		std::int32_t xpels_per_meter;     /* X pixels per meter */
-		std::int32_t ypels_per_meter;     /* Y pixels per meter */
-		std::uint32_t clr_used;		  /* Number of colors used */
-		std::uint32_t clr_important;      /* Number of important colors */
+		std::uint32_t size;            /* Size of info header */
+		std::int32_t width;            /* Width of image */
+		std::int32_t height;           /* Height of image */
+		std::uint16_t planes;          /* Number of color planes */
+		std::uint16_t bits_per_pixel;  /* Number of bits per pixel */
+		std::uint32_t compression;     /* Type of compression to use */
+		std::uint32_t size_image;      /* Size of image data */
+		std::int32_t xpels_per_meter;  /* X pixels per meter */
+		std::int32_t ypels_per_meter;  /* Y pixels per meter */
+		std::uint32_t clr_used;        /* Number of colors used */
+		std::uint32_t clr_important;   /* Number of important colors */
 	};
 	static_assert(sizeof(BitmapHeader) == 54, "Bitmap header size must be 54 bytes");
 
 	struct Pixel
 	{
-		std::uint8_t r{0}; /* Blue value */
-		std::uint8_t g{0}; /* Green value */
-		std::uint8_t b{0}; /* Red value */
+		std::uint8_t r; /* Blue value */
+		std::uint8_t g; /* Green value */
+		std::uint8_t b; /* Red value */
 
-		constexpr Pixel() noexcept = default;
-		explicit constexpr Pixel(std::uint8_t rgb) noexcept : r(rgb), g(rgb), b(rgb) {}
+		constexpr Pixel() noexcept : r(0), g(0), b(0) {}
+		explicit constexpr Pixel(const std::int32_t rgb) noexcept : r((rgb >> 16) & 0xff), g((rgb >> 8) & 0xff), b((rgb >> 0x0) & 0xff) {}
 		constexpr Pixel(std::uint8_t red, std::uint8_t green, std::uint8_t blue) noexcept : r(red), g(green), b(blue) {}
 
-		constexpr bool operator==(const Pixel other) const noexcept
-		{
-			return r == other.r and g == other.g and b == other.b;
-		}
+		constexpr bool operator==(const Pixel other) const noexcept { return r == other.r and g == other.g and b == other.b; }
+		constexpr bool operator!=(const Pixel other) const noexcept { return not ((*this) == other); }
 	};
 	static_assert(sizeof(Pixel) == 3, "Bitmap Pixel size must be 3 bytes");
 #pragma pack(pop)

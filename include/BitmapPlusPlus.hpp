@@ -1,7 +1,4 @@
 #pragma once
-#ifndef BITMAP_PLUSPLUS_H
-#define BITMAP_PLUSPLUS_H
-
 #include <fstream>   // std::*fstream
 #include <vector>    // std::vector
 #include <memory>    // std::unique_ptr
@@ -21,23 +18,23 @@ namespace bmp
 	struct BitmapHeader
 	{
 		/* Bitmap file header structure */
-		std::uint16_t magic;           /* Magic number for file always BM which is 0x4D42 */
-		std::uint32_t file_size;       /* Size of file */
-		std::uint16_t reserved1;       /* Reserved */
-		std::uint16_t reserved2;       /* Reserved */
-		std::uint32_t offset_bits;     /* Offset to bitmap data */
+		std::uint16_t magic;              /* Magic number for file always BM which is 0x4D42 */
+		std::uint32_t file_size;          /* Size of file */
+		std::uint16_t reserved1;          /* Reserved */
+		std::uint16_t reserved2;          /* Reserved */
+		std::uint32_t offset_bits;        /* Offset to bitmap data */
 		/* Bitmap file info structure */
-		std::uint32_t size;            /* Size of info header */
-		std::int32_t width;            /* Width of image */
-		std::int32_t height;           /* Height of image */
-		std::uint16_t planes;          /* Number of color planes */
-		std::uint16_t bits_per_pixel;  /* Number of bits per pixel */
-		std::uint32_t compression;     /* Type of compression to use */
-		std::uint32_t size_image;      /* Size of image data */
-		std::int32_t xpels_per_meter;  /* X pixels per meter */
-		std::int32_t ypels_per_meter;  /* Y pixels per meter */
-		std::uint32_t clr_used;        /* Number of colors used */
-		std::uint32_t clr_important;   /* Number of important colors */
+		std::uint32_t size;               /* Size of info header */
+		std::int32_t width;               /* Width of image */
+		std::int32_t height;              /* Height of image */
+		std::uint16_t planes;             /* Number of color planes */
+		std::uint16_t bits_per_pixel;     /* Number of bits per pixel */
+		std::uint32_t compression;        /* Type of compression to use */
+		std::uint32_t size_image;         /* Size of image data */
+		std::int32_t x_pixels_per_meter;  /* X pixels per meter */
+		std::int32_t y_pixels_per_meter;  /* Y pixels per meter */
+		std::uint32_t clr_used;           /* Number of colors used */
+		std::uint32_t clr_important;      /* Number of important colors */
 	};
 	static_assert(sizeof(BitmapHeader) == 54, "Bitmap header size must be 54 bytes");
 
@@ -63,14 +60,10 @@ namespace bmp
 	static constexpr const Pixel Green{std::uint8_t(0), std::uint8_t(255), std::uint8_t(0)};
 	static constexpr const Pixel Blue{std::uint8_t(0), std::uint8_t(0), std::uint8_t(255)};
 
-	class Exception : public std::exception
+	class Exception : public std::runtime_error
 	{
 	public:
-		Exception(const std::string &message) : m_msg(message) {}
-		virtual const char *what() const noexcept { return m_msg.c_str(); }
-
-	private:
-		const std::string m_msg;
+		explicit Exception(const std::string &message) : std::runtime_error(message){}
 	};
 
 	class Bitmap
@@ -82,7 +75,7 @@ namespace bmp
 			  m_height(0)
 		{
 		}
-		Bitmap(const std::string &filename)
+		explicit Bitmap(const std::string &filename)
 			: m_pixels(),
 			  m_width(0),
 			  m_height(0)
@@ -224,8 +217,8 @@ namespace bmp
 			header.bits_per_pixel = sizeof(Pixel) * 8; // 24bpp
 			header.compression = 0;
 			header.size_image = bitmap_size;
-			header.xpels_per_meter = 0;
-			header.ypels_per_meter = 0;
+			header.x_pixels_per_meter = 0;
+			header.y_pixels_per_meter = 0;
 			header.clr_used = 0;
 			header.clr_important = 0;
 
@@ -332,18 +325,9 @@ namespace bmp
 			return (x >= 0) && (x < m_width) && (y >= 0) && (y < m_height);
 		}
 
-		/**
-		 *	Converts double rgb value into uint8
-		 */
-		constexpr std::uint8_t toUint8(const double x) noexcept
-		{
-			return x >= 1.0 ? 255 : x <= 0.0 ? 0 : static_cast<std::uint8_t>(x * 255.0 + 0.5);
-		}
-
 	private:
 		std::vector<Pixel> m_pixels;
 		std::int32_t m_width;
 		std::int32_t m_height;
 	};
 }
-#endif // !BITMAP_PLUSPLUS_H

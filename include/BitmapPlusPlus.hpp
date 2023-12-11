@@ -9,7 +9,6 @@
 #include <string>    // std::string
 #include <cstring>   // std::memcmp
 #include <exception> // std::exception
-#include <cmath> // std::sqrt
 
 namespace bmp {
   // Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)

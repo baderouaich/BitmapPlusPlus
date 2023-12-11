@@ -51,8 +51,51 @@ int main(void)
 }
 ```
 ![random](images/random.bmp)
+<br><br>
+
+<strong>Draw Primitives</strong>
+
+```cpp
+#include <iostream>
+#include "BitmapPlusPlus.hpp"
+
+using namespace bmp;
+
+int main() {
+  // Create a 512x240 blank image
+  Bitmap image(512, 240);
+  image.clear(Pixel(0x25292e));
+
+  /** Line **/
+  // Draw a yellow line from position (250, 50) to position (500, 50)
+  image.draw_line(250, 50, 500, 50, Yellow);
+
+  /** Rectangle **/
+  // Draw a red rectangle in position (10, 10) with size 100x100
+  image.draw_rect(10, 10, 100, 100, Red);
+  // Draw a white filled rectangle in position (120, 10) with size 100x100
+  image.fill_rect(120, 10, 100, 100, White);
+
+  /** Triangle **/
+  image.draw_triangle(60, 120, 10, 220, 120, 220, Cyan);
+  image.fill_triangle(180, 120, 130, 220, 245, 220, Magenta);
+
+  /** Circle **/
+  // Draw a non-filled Gray circle in position (300, 170) with 50 pixels radius
+  image.draw_circle(300, 170, 50, Gray);
+  // Draw a filled Lime circle in position (300, 170) with 50 pixels radius
+  image.fill_circle(420, 170, 50, Lime);
+
+  // Save bitmap
+  image.save("primitives.bmp");
+
+  return EXIT_SUCCESS;
+}
+```
+![primitives](images/primitives.bmp)
 
 <br><br>
+
 
 <strong>Mandelbrot Fractal Set</strong>
 <br>
@@ -271,95 +314,78 @@ int main()
 
 <br><br>
 
-<strong>Draw Shapes</strong>
+<strong>Draw Shapes using Polymorphism</strong>
 <br>
 
 ```cpp
 #include <iostream>
 #include "BitmapPlusPlus.hpp"
 
-struct Shape
-{
-    int x, y;
-    bmp::Pixel color;
-    Shape(int x, int y, bmp::Pixel color) : x(x), y(y), color(color) {}
+struct Shape {
+  int x, y;
+  bmp::Pixel color;
 
-    void draw(bmp::Bitmap &image)
-    {
-        for (std::size_t dx = 0; dx < image.width(); dx++)
-        {
-            for (std::size_t dy = 0; dy < image.height(); dy++)
-            {
-                if (pixel_in_shape(dx, dy))
-                    image.set(dx, dy, color);
-            }
-        }
-    }
-    virtual bool pixel_in_shape(int x, int y) { return false; };
-};
-struct Rectangle : Shape
-{
-    int width, height;
-    Rectangle(int x, int y, int w, int h, bmp::Pixel color) : width(w), height(h), Shape(x, y, color) {}
+  Shape(int x, int y, bmp::Pixel color) : x(x), y(y), color(color) {}
 
-    bool pixel_in_shape(int x, int y) override { return x >= this->x && x <= this->x + width && y >= this->y && y <= this->y + height; };
-};
-struct Triangle : Shape
-{
-    int x2, y2, x3, y3;
-    Triangle(int x1, int y1, int x2, int y2, int x3, int y3, bmp::Pixel color) : x2(x2), y2(y2), x3(x3), y3(y3), Shape(x1, y1, color) {}
-
-    bool pixel_in_shape(int x, int y) override
-    {
-        auto area = [](int x1, int y1, int x2, int y2, int x3, int y3)
-        { return std::abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0); };
-        float A = area(this->x, this->y, x2, y2, x3, y3);
-        float A1 = area(x, y, x2, y2, x3, y3);
-        float A2 = area(this->x, this->y, x, y, x3, y3);
-        float A3 = area(this->x, this->y, x2, y2, x, y);
-        return (A == A1 + A2 + A3);
-    }
-};
-struct Circle : Shape
-{
-    int radius;
-    Circle(int x, int y, int radius, bmp::Pixel color) : radius(radius), Shape(x, y, color) {}
-
-    bool pixel_in_shape(int x, int y) override
-    {
-        return ((x - this->x) * (x - this->x) + (y - this->y) * (y - this->y)) <= radius * radius;
-    }
+  virtual void draw(bmp::Bitmap &image) = 0;
 };
 
-int main()
-{
-    try
-    {
-        bmp::Bitmap image(640, 256);
-        bmp::Pixel background_color = {170, 170, 180};
-        image.clear(background_color);
+struct Rectangle : Shape {
+  int width, height;
 
-        std::vector<Shape *> shapes
-        {
-            new Rectangle(20, 20, 180, 180, bmp::Pixel(163, 24, 48)),
-            new Triangle(310, 20, 230, 200, 400, 200, bmp::Pixel(21, 59, 148)),
-            new Circle(500, 110, 90, bmp::Pixel(34, 128, 53))    
-        };
+  Rectangle(int x, int y, int w, int h, bmp::Pixel color) : width(w), height(h), Shape(x, y, color) {}
 
-        for (Shape *shape : shapes)
-        {
-            shape->draw(image);
-            delete shape;
-        }
-        image.save("shapes.bmp");
+  void draw(bmp::Bitmap &image) override {
+    image.fill_rect(x, y, width, height, color);
+  }
+};
 
-        return EXIT_SUCCESS;
+struct Triangle : Shape {
+  int x2, y2, x3, y3;
+
+  Triangle(int x1, int y1, int x2, int y2, int x3, int y3, bmp::Pixel color) : x2(x2), y2(y2), x3(x3), y3(y3),
+                                                                               Shape(x1, y1, color) {}
+
+  void draw(bmp::Bitmap &image) override {
+    image.fill_triangle(x, y, x2, y2, x3, y3, color);
+  }
+};
+
+struct Circle : Shape {
+  int radius;
+
+  Circle(int x, int y, int radius, bmp::Pixel color) : radius(radius), Shape(x, y, color) {}
+
+  void draw(bmp::Bitmap &image) override {
+    image.fill_circle(x, y, radius, color);
+  }
+};
+
+int main() {
+  try {
+    bmp::Bitmap image(640, 256);
+    bmp::Pixel background_color{0xaaaab4};
+    image.clear(background_color);
+
+    std::vector<Shape *> shapes
+      {
+        new Rectangle(20, 20, 180, 180, bmp::Pixel(0xa31d3a)),
+        new Triangle(310, 20, 230, 200, 400, 200, bmp::Pixel(0x1a5096)),
+        new Circle(500, 110, 90, bmp::Pixel(0x228035))
+      };
+
+    for (Shape *shape: shapes) {
+      shape->draw(image);
+      delete shape;
     }
-    catch (const bmp::Exception &e)
-    {
-        std::cerr << "[BMP ERROR]: " << e.what() << '\n';
-        return EXIT_FAILURE;
-    }
+    image.save("shapes.bmp");
+
+    return EXIT_SUCCESS;
+  }
+  catch (const bmp::Exception &e) {
+    std::cerr << "[BMP ERROR]: " << e.what() << '\n';
+    return EXIT_FAILURE;
+  }
 }
 ```
 ![shapes](images/shapes.bmp)

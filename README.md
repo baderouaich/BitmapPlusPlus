@@ -327,7 +327,7 @@ struct Circle : Shape {
 int main() {
   try {
     bmp::Bitmap image(640, 256);
-    bmp::Pixel background_color{0xaaaab4};
+    bmp::Pixel background_color{bmp::Silver};
     image.clear(background_color);
 
     std::vector<Shape *> shapes

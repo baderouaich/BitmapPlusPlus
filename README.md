@@ -12,42 +12,37 @@ Simple and Fast header only Bitmap (BMP) library
 #include <random>
 #include <iostream>
 
-static bmp::Pixel random_color()
-{
-	static std::random_device seed{};
-	static std::default_random_engine engine{seed()};
-	std::uniform_int_distribution<std::int32_t> dist(0, 255);
-	bmp::Pixel color{};
-	color.r = dist(engine);
-	color.g = dist(engine);
-	color.b = dist(engine);
-	return color;
+static bmp::Pixel random_color() {
+  static std::random_device seed{};
+  static std::default_random_engine engine{seed()};
+  std::uniform_int_distribution<std::int32_t> dist(0, 255);
+  bmp::Pixel color{};
+  color.r = dist(engine);
+  color.g = dist(engine);
+  color.b = dist(engine);
+  return color;
 }
 
-int main(void)
-{
-	try
-	{
-		// Create a 512x512 bitmap
-		bmp::Bitmap image(512, 512);
+int main(void) {
+  try {
+    // Create a 512x512 bitmap
+    bmp::Bitmap image(512, 512);
 
-		// Assign a random color to each pixel in the image
-		for (bmp::Pixel &pixel : image)
-		{
-			pixel = random_color();
-		}
+    // Assign a random color to each pixel in the image
+    for (bmp::Pixel &pixel: image) {
+      pixel = random_color();
+    }
 
-		// Save bitmap to new file image.bmp
-		image.save("image.bmp");
+    // Save bitmap to new file image.bmp
+    image.save("image.bmp");
 
-		// And Voila!
-		return EXIT_SUCCESS;
-	}
-	catch (const bmp::Exception &e)
-	{
-		std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+    // And Voila!
+    return EXIT_SUCCESS;
+  }
+  catch (const bmp::Exception &e) {
+    std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
 }
 ```
 ![random](images/random.bmp)
@@ -101,61 +96,50 @@ int main() {
 <br>
 ```cpp
 #include "BitmapPlusPlus.hpp"
-#include "ColorMaps.inl"
-#include <iostream>
+#include "color_maps.inl"
+#include <cmath>
 
-int main(void)
-{
-    try
-    {
-        bmp::Bitmap image(600, 400);
+int main(void) {
+  bmp::Bitmap image(1280, 960);
 
-        double cr, ci;
-        double nextr, nexti;
-        double prevr, previ;
-        constexpr const std::uint16_t max_iterations = 3000;
+  double cr, ci;
+  double nextr, nexti;
+  double prevr, previ;
+  constexpr const std::uint16_t max_iterations = 3000;
 
-        for (std::int32_t y = 0; y < image.height(); ++y)
-        {
-            for (std::int32_t x = 0; x < image.width(); ++x)
-            {
-                cr = 1.5 * (2.0 * x / image.width() - 1.0) - 0.5;
-                ci = (2.0 * y / image.height() - 1.0);
+  for (std::int32_t y = 0; y < image.height(); ++y) {
+    for (std::int32_t x = 0; x < image.width(); ++x) {
+      cr = 1.5 * (2.0 * x / image.width() - 1.0) - 0.5;
+      ci = (2.0 * y / image.height() - 1.0);
 
-                nextr = nexti = 0;
-                prevr = previ = 0;
+      nextr = nexti = 0;
+      prevr = previ = 0;
 
-                for (std::uint16_t i = 0; i < max_iterations; ++i)
-                {
-                    prevr = nextr;
-                    previ = nexti;
+      for (std::uint16_t i = 0; i < max_iterations; ++i) {
+        prevr = nextr;
+        previ = nexti;
 
-                    nextr = prevr * prevr - previ * previ + cr;
-                    nexti = 2 * prevr * previ + ci;
+        nextr = prevr * prevr - previ * previ + cr;
+        nexti = 2 * prevr * previ + ci;
 
-                    if (((nextr * nextr) + (nexti * nexti)) > 4)
-                    {
-                        const double z = sqrt(nextr * nextr + nexti * nexti);
+        if (((nextr * nextr) + (nexti * nexti)) > 4) {
+          const double z = sqrt(nextr * nextr + nexti * nexti);
 
-                        //https://en.wikipedia.org/wiki/Mandelbrot_set#Continuous_.28smooth.29_coloring
-                        const std::uint32_t index = static_cast<std::uint32_t>(1000.0 * log2(1.75 + i - log2(log2(z))) / log2(max_iterations));
+          // https://en.wikipedia.org/wiki/Mandelbrot_set#Continuous_.28smooth.29_coloring
+          const std::uint32_t index = static_cast<std::uint32_t>(1000.0 * log2(1.75 + i - log2(log2(z))) /
+                                                                 log2(max_iterations));
 
-                        image.set(x, y, jet_colormap[index]);
+          image.set(x, y, jet_colormap[index]);
 
-                        break;
-                    }
-                }
-            }
+          break;
         }
+      }
+    }
+  }
 
-        image.save("mandelbrot.bmp");
-    }
-    catch (const bmp::Exception& e)
-    {
-        std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
+  image.save("mandelbrot.bmp");
+
+  return EXIT_SUCCESS;
 }
 ```
 ![mandelbrot](images/mandelbrot.bmp)
@@ -167,55 +151,42 @@ int main(void)
 
 ```cpp
 #include "BitmapPlusPlus.hpp"
-#include "ColorMaps.inl"
-#include <iostream>
+#include "color_maps.inl"
 
-int main(void)
-{
-    try
-    {
-        bmp::Bitmap image(600, 400);
+int main(void) {
+  bmp::Bitmap image(1280, 960);
 
-        constexpr const std::uint16_t max_iterations = 300;
+  constexpr const std::uint16_t max_iterations = 300;
 
-        constexpr const double cr = -0.70000;
-        constexpr const double ci = 0.27015;
+  constexpr const double cr = -0.70000;
+  constexpr const double ci = 0.27015;
 
-        double prevr, previ;
+  double prevr, previ;
 
-        for (std::int32_t y = 0; y < image.height(); ++y)
-        {
-            for (std::int32_t x = 0; x < image.width(); ++x)
-            {
-                double nextr = 1.5 * (2.0 * x / image.width() - 1.0);
-                double nexti = (2.0 * y / image.height() - 1.0);
+  for (std::int32_t y = 0; y < image.height(); ++y) {
+    for (std::int32_t x = 0; x < image.width(); ++x) {
+      double nextr = 1.5 * (2.0 * x / image.width() - 1.0);
+      double nexti = (2.0 * y / image.height() - 1.0);
 
-                for (std::uint16_t i = 0; i < max_iterations; ++i)
-                {
-                    prevr = nextr;
-                    previ = nexti;
+      for (std::uint16_t i = 0; i < max_iterations; ++i) {
+        prevr = nextr;
+        previ = nexti;
 
-                    nextr = prevr * prevr - previ * previ + cr;
-                    nexti = 2 * prevr * previ + ci;
+        nextr = prevr * prevr - previ * previ + cr;
+        nexti = 2 * prevr * previ + ci;
 
-                    if (((nextr * nextr) + (nexti * nexti)) > 4)
-                    {
-                        const bmp::Pixel color = hsv_colormap[static_cast<std::size_t>((1000.0 * i) / max_iterations)];
-                        image.set(x, y, color);
-                        break;
-                    }
-                }
-            }
+        if (((nextr * nextr) + (nexti * nexti)) > 4) {
+          const bmp::Pixel color = hsv_colormap[static_cast<std::size_t>((1000.0 * i) / max_iterations)];
+          image.set(x, y, color);
+          break;
         }
+      }
+    }
+  }
 
-        image.save("julia.bmp");
-    }
-    catch (const bmp::Exception& e)
-    {
-        std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
+  image.save("julia.bmp");
+
+  return EXIT_SUCCESS;
 }
 ```
 ![julia](images/julia.bmp)
@@ -228,30 +199,29 @@ int main(void)
 
 ```cpp
 #include "BitmapPlusPlus.hpp"
-#include <iostream>
 
-int main(void)
-{
-	try
-	{
-		bmp::Bitmap image("penguin.bmp");
-		// Modify loaded image (makes half of the image black)
-		for (std::int32_t y = 0; y < image.height(); ++y)
-		{
-			for (std::int32_t x = 0; x < image.width() / 2; ++x)
-			{
-				image.set(x, y, bmp::Black);
-			}
-		}
-		// Save bitmap to file
-		image.save("modified-penguin.bmp");
-	}
-	catch (const bmp::Exception& e)
-	{
-		std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
+int main(void) {
+  try {
+    bmp::Bitmap image;
+
+    // Load penguin.bmp bitmap
+    image.load("penguin.bmp");
+
+    // Modify loaded image (makes half of the image black)
+    for (std::int32_t y = 0; y < image.height(); ++y) {
+      for (std::int32_t x = 0; x < image.width() / 2; ++x) {
+        image.set(x, y, bmp::Black);
+      }
+    }
+
+    // Save
+    image.save("modified-penguin.bmp");
+
+    return EXIT_SUCCESS;
+  }
+  catch (const bmp::Exception &e) {
+    return EXIT_FAILURE;
+  }
 }
 ```
 ![penguin](images/penguin.bmp)
@@ -267,46 +237,39 @@ int main(void)
 #include <iostream>
 #include "BitmapPlusPlus.hpp"
 
-int main()
-{
-    try
-    {
-        // 8x8 chess board
-        bmp::Bitmap image(640, 640);
-        const std::size_t board_dims = 8;
-        const std::size_t rect_w = image.width() / board_dims;
-        const std::size_t rect_h = image.height() / board_dims;
+int main() {
+  try {
+    // 8x8 chess board
+    bmp::Bitmap image(640, 640);
+    const std::size_t board_dims = 8;
+    const std::size_t rect_w = image.width() / board_dims;
+    const std::size_t rect_h = image.height() / board_dims;
 
-        // Iterate over rectangles
-        bool is_white = true;
-        for (std::size_t x = 0; x < image.width(); x += rect_w)
-        {
-            for (std::size_t y = 0; y < image.height(); y += rect_h)
-            {
-                bmp::Pixel color = is_white ? bmp::White : bmp::Black;
-                // Fill rect
-                for (size_t dx = x; dx < x + rect_w; dx++)
-                {
-                    for (size_t dy = y; dy < y + rect_h; dy++)
-                    {
-                        image.set(dx, dy, color);
-                    }
-                }
-                is_white = !is_white; // flip flop
-            }
-            is_white = !is_white; // flip flop
+    // Iterate over rects
+    bool is_white = true;
+    for (std::size_t x = 0; x < image.width(); x += rect_w) {
+      for (std::size_t y = 0; y < image.height(); y += rect_h) {
+        bmp::Pixel color = is_white ? bmp::White : bmp::Black;
+        // Fill rect
+        for (size_t dx = x; dx < x + rect_w; dx++) {
+          for (size_t dy = y; dy < y + rect_h; dy++) {
+            image.set(dx, dy, color);
+          }
         }
-
-        // Save bitmap to file
-        image.save("chess_board.bmp");
-
-        return EXIT_SUCCESS;
+        is_white = !is_white;
+      }
+      is_white = !is_white;
     }
-    catch (const bmp::Exception &e)
-    {
-        std::cerr << "[BMP ERROR]: " << e.what() << '\n';
-        return EXIT_FAILURE;
-    }
+
+    // Save bitmap to file
+    image.save("chess_board.bmp");
+
+    return EXIT_SUCCESS;
+  }
+  catch (const bmp::Exception &e) {
+    std::cerr << "[BMP ERROR]: " << e.what() << '\n';
+    return EXIT_FAILURE;
+  }
 }
 ```
 ![chess_board](images/chess_board.bmp)
@@ -314,7 +277,7 @@ int main()
 
 <br><br>
 
-<strong>Draw Shapes using Polymorphism</strong>
+<strong>Draw multiple shapes using Polymorphism</strong>
 <br>
 
 ```cpp

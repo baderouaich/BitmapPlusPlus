@@ -162,7 +162,7 @@ namespace bmp {
      */
     void fill_rect(const std::int32_t x, const std::int32_t y, const std::int32_t width, const std::int32_t height,
                    const Pixel color) {
-      if (!in_bounds(x, y) || !in_bounds(x + width, y + height))
+      if (!in_bounds(x, y) || !in_bounds(x + (width - 1), y + (height - 1)))
         throw Exception(
           "Bitmap::fill_rect(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(width) + ", " +
           std::to_string(height) + "): x,y,w or h out of bounds");
@@ -179,7 +179,7 @@ namespace bmp {
      */
     void draw_rect(const std::int32_t x, const std::int32_t y, const std::int32_t width, const std::int32_t height,
                    const Pixel color) {
-      if (!in_bounds(x, y) || !in_bounds(x + width, y + height))
+      if (!in_bounds(x, y) || !in_bounds(x + (width - 1), y + (height - 1)))
         throw Exception(
           "Bitmap::draw_rect(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(width) + ", " +
           std::to_string(height) + "): x,y,w or h out of bounds");

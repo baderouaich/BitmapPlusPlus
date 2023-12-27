@@ -15,11 +15,8 @@ int main() {
       for (std::size_t y = 0; y < image.height(); y += rect_h) {
         bmp::Pixel color = is_white ? bmp::White : bmp::Black;
         // Fill rect
-        for (size_t dx = x; dx < x + rect_w; dx++) {
-          for (size_t dy = y; dy < y + rect_h; dy++) {
-            image.set(dx, dy, color);
-          }
-        }
+        image.fill_rect(x, y, rect_w, rect_h, color);
+        // Next rect in will be the opposite color
         is_white = !is_white;
       }
       is_white = !is_white;

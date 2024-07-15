@@ -516,6 +516,12 @@ namespace bmp {
           throw Exception("Bitmap::Load(\"" + filename + "\"): Only 24 bits per pixel bitmaps supported.");
         }
 
+        // Seek the beginning of the pixels data
+        // Note: We can't just assume we're there right after we read the BitmapHeader
+        // Because some editors like Gimp might put extra information after the header.
+        // Thanks to @seeliger-ec
+        ifs.seekg(header->offset_bits);
+
         // Set width & height
         m_width = header->width;
         m_height = header->height;
@@ -534,7 +540,7 @@ namespace bmp {
             color.b = line[i++];
             color.g = line[i++];
             color.r = line[i++];
-            m_pixels[IX(x, y)] = color; // this->Set(x, y, color);
+            m_pixels[IX(x, y)] = color;
           }
         }
 

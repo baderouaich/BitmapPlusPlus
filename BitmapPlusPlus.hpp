@@ -8,7 +8,8 @@
 #include <cstddef>   // std::size_t
 #include <string>    // std::string
 #include <cstring>   // std::memcmp
-#include <exception> // std::exception
+#include <stdexcept> // std::runtime_error
+#include <utility>   // std::exchange
 
 namespace bmp {
   // Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)
@@ -123,6 +124,12 @@ namespace bmp {
     }
 
     Bitmap(const Bitmap &other) = default; // Copy Constructor
+
+    Bitmap(Bitmap &&other) noexcept
+      : m_pixels(std::move(other.m_pixels)),
+        m_width(std::exchange(other.m_width, 0)),
+        m_height(std::exchange(other.m_height, 0)) {
+    }
 
     virtual ~Bitmap() noexcept {
       m_pixels.clear();
@@ -400,12 +407,21 @@ namespace bmp {
 
     bool operator!=(const Bitmap &image) const { return !(*this == image); }
 
-    Bitmap &operator=(const Bitmap &image) // Move assignment operator
+    Bitmap &operator=(const Bitmap &image) // Copy assignment operator
     {
       if (this != &image) {
         m_width = image.m_width;
         m_height = image.m_height;
         m_pixels = image.m_pixels;
+      }
+      return *this;
+    }
+
+    Bitmap &operator=(Bitmap &&image) noexcept {
+      if (this != &image) {
+        m_pixels = std::move(image.m_pixels);
+        m_width = std::exchange(image.m_width, 0);
+        m_height = std::exchange(image.m_height, 0);
       }
       return *this;
     }

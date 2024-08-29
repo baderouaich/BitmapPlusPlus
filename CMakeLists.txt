@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(BitmapPlusPlus VERSION "1.0.1" DESCRIPTION "Simple and Fast header only Bitmap (BMP) C++ library" LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
 
 # Examples
 option(BPP_BUILD_EXAMPLES "Requires BPP to build all examples inside examples/ folder." ON)

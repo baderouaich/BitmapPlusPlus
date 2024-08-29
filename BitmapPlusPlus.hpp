@@ -50,10 +50,10 @@ namespace bmp {
     constexpr Pixel(std::uint8_t red, std::uint8_t green, std::uint8_t blue) noexcept: r(red), g(green), b(blue) {}
 
     constexpr bool operator==(const Pixel other) const noexcept {
-      return r == other.r and g == other.g and b == other.b;
+      return r == other.r && g == other.g && b == other.b;
     }
 
-    constexpr bool operator!=(const Pixel other) const noexcept { return not((*this) == other); }
+    constexpr bool operator!=(const Pixel other) const noexcept { return !((*this) == other); }
   };
 
   static_assert(sizeof(Pixel) == 3, "Bitmap Pixel size must be 3 bytes");

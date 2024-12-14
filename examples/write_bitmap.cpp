@@ -13,7 +13,7 @@ static bmp::Pixel random_color() {
   return color;
 }
 
-int main(void) {
+int main() {
   try {
     // Create a 512x512 bitmap
     bmp::Bitmap image(512, 512);
@@ -28,8 +28,7 @@ int main(void) {
 
     // And Voila!
     return EXIT_SUCCESS;
-  }
-  catch (const bmp::Exception &e) {
+  } catch (const bmp::Exception &e) {
     std::cerr << "[BMP ERROR]: " << e.what() << std::endl;
     return EXIT_FAILURE;
   }

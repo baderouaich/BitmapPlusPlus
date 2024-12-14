@@ -18,8 +18,7 @@ int main(void) {
     image.save("modified-penguin.bmp");
 
     return EXIT_SUCCESS;
-  }
-  catch (const bmp::Exception &e) {
+  } catch (const bmp::Exception &e) {
     return EXIT_FAILURE;
   }
 }

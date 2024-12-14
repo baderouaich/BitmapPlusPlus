@@ -18,24 +18,25 @@ namespace bmp {
 #pragma pack(push, 1)
   struct BitmapHeader {
     /* Bitmap file header structure */
-    std::uint16_t magic;              /* Magic number for file always BM which is 0x4D42 */
-    std::uint32_t file_size;          /* Size of file */
-    std::uint16_t reserved1;          /* Reserved */
-    std::uint16_t reserved2;          /* Reserved */
-    std::uint32_t offset_bits;        /* Offset to bitmap data */
+    std::uint16_t magic; /* Magic number for file always BM which is 0x4D42 */
+    std::uint32_t file_size; /* Size of file */
+    std::uint16_t reserved1; /* Reserved */
+    std::uint16_t reserved2; /* Reserved */
+    std::uint32_t offset_bits; /* Offset to bitmap data */
     /* Bitmap file info structure */
-    std::uint32_t size;               /* Size of info header */
-    std::int32_t width;               /* Width of image */
-    std::int32_t height;              /* Height of image */
-    std::uint16_t planes;             /* Number of color planes */
-    std::uint16_t bits_per_pixel;     /* Number of bits per pixel */
-    std::uint32_t compression;        /* Type of compression to use */
-    std::uint32_t size_image;         /* Size of image data */
-    std::int32_t x_pixels_per_meter;  /* X pixels per meter */
-    std::int32_t y_pixels_per_meter;  /* Y pixels per meter */
-    std::uint32_t clr_used;           /* Number of colors used */
-    std::uint32_t clr_important;      /* Number of important colors */
+    std::uint32_t size; /* Size of info header */
+    std::int32_t width; /* Width of image */
+    std::int32_t height; /* Height of image */
+    std::uint16_t planes; /* Number of color planes */
+    std::uint16_t bits_per_pixel; /* Number of bits per pixel */
+    std::uint32_t compression; /* Type of compression to use */
+    std::uint32_t size_image; /* Size of image data */
+    std::int32_t x_pixels_per_meter; /* X pixels per meter */
+    std::int32_t y_pixels_per_meter; /* Y pixels per meter */
+    std::uint32_t clr_used; /* Number of colors used */
+    std::uint32_t clr_important; /* Number of important colors */
   };
+
   static_assert(sizeof(BitmapHeader) == 54, "Bitmap header size must be 54 bytes");
 
   struct Pixel {
@@ -43,61 +44,68 @@ namespace bmp {
     std::uint8_t g; /* Green value */
     std::uint8_t b; /* Red value */
 
-    constexpr Pixel() noexcept: r(0), g(0), b(0) {}
+    constexpr Pixel() noexcept: r(0), g(0), b(0) {
+    }
 
     explicit constexpr Pixel(const std::int32_t rgb) noexcept: r((rgb >> 16) & 0xff), g((rgb >> 8) & 0xff),
-                                                               b((rgb >> 0x0) & 0xff) {}
+                                                               b((rgb >> 0x0) & 0xff) {
+    }
 
-    constexpr Pixel(std::uint8_t red, std::uint8_t green, std::uint8_t blue) noexcept: r(red), g(green), b(blue) {}
+    constexpr Pixel(const std::uint8_t red, const std::uint8_t green,
+                    const std::uint8_t blue) noexcept: r(red), g(green), b(blue) {
+    }
 
-    constexpr bool operator==(const Pixel other) const noexcept {
+    constexpr bool operator==(const Pixel &other) const noexcept {
+      if (this == &other)
+        return true;
       return r == other.r && g == other.g && b == other.b;
     }
 
-    constexpr bool operator!=(const Pixel other) const noexcept { return !((*this) == other); }
+    constexpr bool operator!=(const Pixel &other) const noexcept { return !((*this) == other); }
   };
 
   static_assert(sizeof(Pixel) == 3, "Bitmap Pixel size must be 3 bytes");
 #pragma pack(pop)
 
-  static constexpr const Pixel Aqua{std::uint8_t(0), std::uint8_t(255), std::uint8_t(255)};
-  static constexpr const Pixel Beige{std::uint8_t(245), std::uint8_t(245), std::uint8_t(220)};
-  static constexpr const Pixel Black{std::uint8_t(0), std::uint8_t(0), std::uint8_t(0)};
-  static constexpr const Pixel Blue{std::uint8_t(0), std::uint8_t(0), std::uint8_t(255)};
-  static constexpr const Pixel Brown{std::uint8_t(165), std::uint8_t(42), std::uint8_t(42)};
-  static constexpr const Pixel Chocolate{std::uint8_t(210), std::uint8_t(105), std::uint8_t(30)};
-  static constexpr const Pixel Coral{std::uint8_t(255), std::uint8_t(127), std::uint8_t(80)};
-  static constexpr const Pixel Crimson{std::uint8_t(220), std::uint8_t(20), std::uint8_t(60)};
-  static constexpr const Pixel Cyan{std::uint8_t(0), std::uint8_t(255), std::uint8_t(255)};
-  static constexpr const Pixel Firebrick{std::uint8_t(178), std::uint8_t(34), std::uint8_t(34)};
-  static constexpr const Pixel Gold{std::uint8_t(255), std::uint8_t(215), std::uint8_t(0)};
-  static constexpr const Pixel Gray{std::uint8_t(128), std::uint8_t(128), std::uint8_t(128)};
-  static constexpr const Pixel Green{std::uint8_t(0), std::uint8_t(255), std::uint8_t(0)};
-  static constexpr const Pixel Indigo{std::uint8_t(75), std::uint8_t(0), std::uint8_t(130)};
-  static constexpr const Pixel Lavender{std::uint8_t(230), std::uint8_t(230), std::uint8_t(250)};
-  static constexpr const Pixel Lime{std::uint8_t(0), std::uint8_t(255), std::uint8_t(0)};
-  static constexpr const Pixel Magenta{std::uint8_t(255), std::uint8_t(0), std::uint8_t(255)};
-  static constexpr const Pixel Maroon{std::uint8_t(128), std::uint8_t(0), std::uint8_t(0)};
-  static constexpr const Pixel Navy{std::uint8_t(0), std::uint8_t(0), std::uint8_t(128)};
-  static constexpr const Pixel Olive{std::uint8_t(128), std::uint8_t(128), std::uint8_t(0)};
-  static constexpr const Pixel Orange{std::uint8_t(255), std::uint8_t(165), std::uint8_t(0)};
-  static constexpr const Pixel Pink{std::uint8_t(255), std::uint8_t(192), std::uint8_t(203)};
-  static constexpr const Pixel Purple{std::uint8_t(128), std::uint8_t(0), std::uint8_t(128)};
-  static constexpr const Pixel Red{std::uint8_t(255), std::uint8_t(0), std::uint8_t(0)};
-  static constexpr const Pixel Salmon{std::uint8_t(250), std::uint8_t(128), std::uint8_t(114)};
-  static constexpr const Pixel Silver{std::uint8_t(192), std::uint8_t(192), std::uint8_t(192)};
-  static constexpr const Pixel Snow{std::uint8_t(255), std::uint8_t(250), std::uint8_t(250)};
-  static constexpr const Pixel Teal{std::uint8_t(0), std::uint8_t(128), std::uint8_t(128)};
-  static constexpr const Pixel Tomato{std::uint8_t(255), std::uint8_t(99), std::uint8_t(71)};
-  static constexpr const Pixel Turquoise{std::uint8_t(64), std::uint8_t(224), std::uint8_t(208)};
-  static constexpr const Pixel Violet{std::uint8_t(238), std::uint8_t(130), std::uint8_t(238)};
-  static constexpr const Pixel White{std::uint8_t(255), std::uint8_t(255), std::uint8_t(255)};
-  static constexpr const Pixel Wheat{std::uint8_t(245), std::uint8_t(222), std::uint8_t(179)};
-  static constexpr const Pixel Yellow{std::uint8_t(255), std::uint8_t(255), std::uint8_t(0)};
+  static constexpr Pixel Aqua{0, 255, 255};
+  static constexpr Pixel Beige{245, 245, 220};
+  static constexpr Pixel Black{0, 0, 0};
+  static constexpr Pixel Blue{0, 0, 255};
+  static constexpr Pixel Brown{165, 42, 42};
+  static constexpr Pixel Chocolate{210, 105, 30};
+  static constexpr Pixel Coral{255, 127, 80};
+  static constexpr Pixel Crimson{220, 20, 60};
+  static constexpr Pixel Cyan{0, 255, 255};
+  static constexpr Pixel Firebrick{178, 34, 34};
+  static constexpr Pixel Gold{255, 215, 0};
+  static constexpr Pixel Gray{128, 128, 128};
+  static constexpr Pixel Green{0, 255, 0};
+  static constexpr Pixel Indigo{75, 0, 130};
+  static constexpr Pixel Lavender{230, 230, 250};
+  static constexpr Pixel Lime{0, 255, 0};
+  static constexpr Pixel Magenta{255, 0, 255};
+  static constexpr Pixel Maroon{128, 0, 0};
+  static constexpr Pixel Navy{0, 0, 128};
+  static constexpr Pixel Olive{128, 128, 0};
+  static constexpr Pixel Orange{255, 165, 0};
+  static constexpr Pixel Pink{255, 192, 203};
+  static constexpr Pixel Purple{128, 0, 128};
+  static constexpr Pixel Red{255, 0, 0};
+  static constexpr Pixel Salmon{250, 128, 114};
+  static constexpr Pixel Silver{192, 192, 192};
+  static constexpr Pixel Snow{255, 250, 250};
+  static constexpr Pixel Teal{0, 128, 128};
+  static constexpr Pixel Tomato{255, 99, 71};
+  static constexpr Pixel Turquoise{64, 224, 208};
+  static constexpr Pixel Violet{238, 130, 238};
+  static constexpr Pixel White{255, 255, 255};
+  static constexpr Pixel Wheat{245, 222, 179};
+  static constexpr Pixel Yellow{255, 255, 0};
 
   class Exception : public std::runtime_error {
   public:
-    explicit Exception(const std::string &message) : std::runtime_error(message) {}
+    explicit Exception(const std::string &message) : std::runtime_error(message) {
+    }
   };
 
   class Bitmap {
@@ -228,9 +236,11 @@ namespace bmp {
         throw Exception("Bitmap::fill_triangle: One or more points are out of bounds");
 
       // Sort the vertices by y-coordinate (top to bottom)
-      std::vector<std::pair<std::int32_t, std::int32_t>> vertices = {{x1, y1},
-                                                                     {x2, y2},
-                                                                     {x3, y3}};
+      std::vector<std::pair<std::int32_t, std::int32_t> > vertices = {
+        {x1, y1},
+        {x2, y2},
+        {x3, y3}
+      };
       std::sort(vertices.begin(), vertices.end(), [](const auto &a, const auto &b) {
         return a.second < b.second;
       });
@@ -244,10 +254,10 @@ namespace bmp {
       const float slope_right = static_cast<float>(x_bot - x_top) / (y_bot - y_top);
 
       // Initialize the starting and ending x-coordinates for each scanline
-      std::vector<std::pair<std::int32_t, std::int32_t>> scanlines(y_mid - y_top + 1);
+      std::vector<std::pair<std::int32_t, std::int32_t> > scanlines(y_mid - y_top + 1);
       for (std::int32_t y = y_top; y <= y_mid; ++y) {
-        const std::int32_t x_start = static_cast<std::int32_t>(x_top + (y - y_top) * slope_left);
-        const std::int32_t x_end = static_cast<std::int32_t>(x_top + (y - y_top) * slope_right);
+        const auto x_start = static_cast<std::int32_t>(x_top + (y - y_top) * slope_left);
+        const auto x_end = static_cast<std::int32_t>(x_top + (y - y_top) * slope_right);
         scanlines[y - y_top] = {x_start, x_end};
       }
 
@@ -263,8 +273,8 @@ namespace bmp {
 
       // Update the x-coordinates for the scanlines in the lower part of the triangle
       for (std::int32_t y = y_mid + 1; y <= y_bot; ++y) {
-        const std::int32_t x_start = static_cast<std::int32_t>(x_mid + (y - y_mid) * slope_left);
-        const std::int32_t x_end = static_cast<std::int32_t>(x_top + (y - y_top) * new_slope_right);
+        const auto x_start = static_cast<std::int32_t>(x_mid + (y - y_mid) * slope_left);
+        const auto x_end = static_cast<std::int32_t>(x_top + (y - y_top) * new_slope_right);
         scanlines[y - y_top] = {x_start, x_end};
       }
 
@@ -364,7 +374,7 @@ namespace bmp {
     /**
      *	Get const pixel at position x,y
      */
-    const Pixel &get(const std::int32_t x, const std::int32_t y) const {
+    [[nodiscard]] const Pixel &get(const std::int32_t x, const std::int32_t y) const {
       if (!in_bounds(x, y))
         throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
       return m_pixels[IX(x, y)];
@@ -373,12 +383,12 @@ namespace bmp {
     /**
      *	Returns the width of the Bitmap image
      */
-    std::int32_t width() const noexcept { return m_width; }
+    [[nodiscard]] std::int32_t width() const noexcept { return m_width; }
 
     /**
      *	Returns the height of the Bitmap image
      */
-    std::int32_t height() const noexcept { return m_height; }
+    [[nodiscard]] std::int32_t height() const noexcept { return m_height; }
 
     /**
      *	Clears Bitmap pixels with an rgb color
@@ -427,21 +437,21 @@ namespace bmp {
     }
 
   public: /** foreach iterators access */
-    std::vector<Pixel>::iterator begin() noexcept { return m_pixels.begin(); }
+    [[nodiscard]] std::vector<Pixel>::iterator begin() noexcept { return m_pixels.begin(); }
 
-    std::vector<Pixel>::iterator end() noexcept { return m_pixels.end(); }
+    [[nodiscard]] std::vector<Pixel>::iterator end() noexcept { return m_pixels.end(); }
 
-    std::vector<Pixel>::const_iterator cbegin() const noexcept { return m_pixels.cbegin(); }
+    [[nodiscard]] std::vector<Pixel>::const_iterator cbegin() const noexcept { return m_pixels.cbegin(); }
 
-    std::vector<Pixel>::const_iterator cend() const noexcept { return m_pixels.cend(); }
+    [[nodiscard]] std::vector<Pixel>::const_iterator cend() const noexcept { return m_pixels.cend(); }
 
-    std::vector<Pixel>::reverse_iterator rbegin() noexcept { return m_pixels.rbegin(); }
+    [[nodiscard]] std::vector<Pixel>::reverse_iterator rbegin() noexcept { return m_pixels.rbegin(); }
 
-    std::vector<Pixel>::reverse_iterator rend() noexcept { return m_pixels.rend(); }
+    [[nodiscard]] std::vector<Pixel>::reverse_iterator rend() noexcept { return m_pixels.rend(); }
 
-    std::vector<Pixel>::const_reverse_iterator crbegin() const noexcept { return m_pixels.crbegin(); }
+    [[nodiscard]] std::vector<Pixel>::const_reverse_iterator crbegin() const noexcept { return m_pixels.crbegin(); }
 
-    std::vector<Pixel>::const_reverse_iterator crend() const noexcept { return m_pixels.crend(); }
+    [[nodiscard]] std::vector<Pixel>::const_reverse_iterator crend() const noexcept { return m_pixels.crend(); }
 
   public: /* Modifiers */
     /**
@@ -459,7 +469,7 @@ namespace bmp {
      *	Saves Bitmap pixels into a file
      *   @throws bmp::Exception on error
      */
-    void save(const std::string &filename) {
+    void save(const std::string &filename) const {
       // Calculate row and bitmap size
       const std::int32_t row_size = m_width * 3 + m_width % 4;
       const std::uint32_t bitmap_size = row_size * m_height;

@@ -14,7 +14,7 @@ And link it to your target using:
 target_link_libraries( ${TARGET} LINK_PRIVATE bpp::BitmapPlusPlus )
 ```
 
-After that, you can simply include the library in your code:
+Note that your target needs to compile with C++17 or newer. After that, you can simply include the library in your code:
 
 ```cpp
 #include <BitmapPlusPlus.hpp>

@@ -12,7 +12,10 @@ env:
 
 jobs:
   build:
-    runs-on: windows-2022
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-2022 ]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
@@ -25,15 +28,12 @@ jobs:
         mkdir "${{ env.BUILD_DIR }}"
         cd "${{ env.BUILD_DIR }}"
         cmake ..
-      shell: cmd
 
     - name: Build
       working-directory: ${{ env.BUILD_DIR }}
       run: |
         cmake --build . --config Release
-      shell: cmd
 
     - name: Test
       working-directory: ${{ env.BUILD_DIR }}
       run: ctest -C Release
-      shell: cmd

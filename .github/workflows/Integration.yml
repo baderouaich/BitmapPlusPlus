@@ -1,0 +1,36 @@
+name: IntegrationTests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  IT_DIR: ${{github.workspace}}/integration_tests
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Get branch names.
+      id: branch-names
+      uses: tj-actions/branch-names@v8
+
+    - name: Configure
+      working-directory: ${{env.IT_DIR}}/cpm
+      run: |
+        mkdir _build
+        cd _build
+        cmake -D GIT_BRANCH=${{ steps.branch-names.outputs.current_branch }} ..
+      shell: cmd
+
+    - name: Build
+      working-directory: ${{env.IT_DIR}}/cpm/_build
+      run: |
+        cmake --build . --config Debug
+      shell: cmd

@@ -1,4 +1,4 @@
-#include <iostream>
+#include <filesystem>
 #include "BitmapPlusPlus.hpp"
 
 using namespace bmp;
@@ -29,7 +29,7 @@ int main() {
 	image.fill_circle(420, 170, 50, Lime);
 
 	// Save bitmap
-	image.save(std::string(BIN_DIR) + "/primitives.bmp");
+	image.save(std::filesystem::path(BIN_DIR) / "primitives.bmp");
 
 	return EXIT_SUCCESS;
 }

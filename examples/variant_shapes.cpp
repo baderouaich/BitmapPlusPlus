@@ -1,4 +1,5 @@
 #include "BitmapPlusPlus.hpp"
+#include <filesystem>
 #include <iostream>
 #include <variant>
 
@@ -89,7 +90,7 @@ int main() {
 		for (Shape& shape : shapes) {
 			std::visit(drawer, shape); // visit will call the appropriate ShapeDrawer::operator() for each shape
 		}
-		image.save(std::string(BIN_DIR) + "/variant_shapes.bmp");
+		image.save(std::filesystem::path(BIN_DIR) / "variant_shapes.bmp");
 
 		return EXIT_SUCCESS;
 	}

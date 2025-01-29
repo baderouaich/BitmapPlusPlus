@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include "BitmapPlusPlus.hpp"
 
 struct Shape {
@@ -64,7 +65,7 @@ int main() {
 			shape->draw(image);
 			delete shape;
 		}
-		image.save(std::string(BIN_DIR) + "/polymorphic_shapes.bmp");
+		image.save(std::filesystem::path(BIN_DIR) / "polymorphic_shapes.bmp");
 
 		return EXIT_SUCCESS;
 	}

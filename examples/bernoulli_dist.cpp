@@ -1,6 +1,7 @@
 #include <iostream>
 #include "BitmapPlusPlus.hpp"
 #include <random>
+#include <filesystem>
 
 int main() {
 	try {
@@ -16,7 +17,7 @@ int main() {
 			pixel = color;
 		}
 
-		image.save(std::string(BIN_DIR) + "/bernoulli.bmp");
+		image.save(std::filesystem::path(BIN_DIR) / "bernoulli.bmp");
 
 		return EXIT_SUCCESS;
 	}

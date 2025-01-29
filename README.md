@@ -6,7 +6,11 @@ Simple and Fast header only Bitmap (BMP) library
 
 ## Integration
 
-You can either download the header file and use it your project directly, or you can leverage CMake for this. The library can be easily integrated with FetchContent or through CPM. An example of CPM integration can be found [here](integration_tests/cpm).
+You can either download the header file and use it your project directly, or you can leverage CMake for this.
+The library can be easily integrated with FetchContent or through CPM.<br>
+An example of CPM integration can be found [here](integration_tests/cpm).<br>
+An example of FetchContent integration can be found [here](integration_tests/fetchcontent).
+
 
 ## Examples
 <strong>Random Pixel Colors</strong>

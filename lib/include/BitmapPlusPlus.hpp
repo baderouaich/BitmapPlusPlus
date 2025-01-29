@@ -1,15 +1,16 @@
 #pragma once
 
-#include <fstream>   // std::*fstream
-#include <vector>    // std::vector
-#include <memory>    // std::unique_ptr
-#include <algorithm> // std::fill
-#include <cstdint>   // std::int*_t
-#include <cstddef>   // std::size_t
-#include <string>    // std::string
-#include <cstring>   // std::memcmp
-#include <stdexcept> // std::runtime_error
-#include <utility>   // std::exchange
+#include <fstream>    // std::*fstream
+#include <vector>     // std::vector
+#include <memory>     // std::unique_ptr
+#include <algorithm>  // std::fill
+#include <cstdint>    // std::int*_t
+#include <cstddef>    // std::size_t
+#include <string>     // std::string
+#include <cstring>    // std::memcmp
+#include <filesystem> // std::filesystem::path
+#include <stdexcept>  // std::runtime_error
+#include <utility>    // std::exchange
 
 namespace bmp {
   // Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)
@@ -469,7 +470,7 @@ namespace bmp {
      *	Saves Bitmap pixels into a file
      *   @throws bmp::Exception on error
      */
-    void save(const std::string &filename) const {
+    void save(const std::filesystem::path &filename) const {
       // Calculate row and bitmap size
       const std::int32_t row_size = m_width * 3 + m_width % 4;
       const std::uint32_t bitmap_size = row_size * m_height;
@@ -516,14 +517,14 @@ namespace bmp {
         // Close File
         ofs.close();
       } else
-        throw Exception("Bitmap::Save(\"" + filename + "\"): Failed to save pixels to file.");
+        throw Exception("Bitmap::Save(\"" + filename.string() + "\"): Failed to save pixels to file.");
     }
 
     /**
      *	Loads Bitmap from file
      *   @throws bmp::Exception on error
      */
-    void load(const std::string &filename) {
+    void load(const std::filesystem::path &filename) {
       m_pixels.clear();
 
       if (std::ifstream ifs{filename, std::ios::binary}) {
@@ -534,12 +535,12 @@ namespace bmp {
         // Check if Bitmap file is valid
         if (header->magic != BITMAP_BUFFER_MAGIC) {
           ifs.close();
-          throw Exception("Bitmap::Load(\"" + filename + "\"): Unrecognized file format.");
+          throw Exception("Bitmap::Load(\"" + filename.string() + "\"): Unrecognized file format.");
         }
         // Check if the Bitmap file has 24 bits per pixel (for now supporting only 24bpp bitmaps)
         if (header->bits_per_pixel != 24) {
           ifs.close();
-          throw Exception("Bitmap::Load(\"" + filename + "\"): Only 24 bits per pixel bitmaps supported.");
+          throw Exception("Bitmap::Load(\"" + filename.string() + "\"): Only 24 bits per pixel bitmaps supported.");
         }
 
         // Seek the beginning of the pixels data
@@ -573,7 +574,7 @@ namespace bmp {
         // Close file
         ifs.close();
       } else
-        throw Exception("Bitmap::Load(\"" + filename + "\"): Failed to load bitmap pixels from file.");
+        throw Exception("Bitmap::Load(\"" + filename.string() + "\"): Failed to load bitmap pixels from file.");
     }
 
   private: /* Utils */

@@ -1,19 +1,23 @@
-# Integration example using CPM
+# Integration example using FetchContent
 
-CPM stands for [CMake Package Manager](https://github.com/cpm-cmake) which is a convenience wrapper over CMake's
-FetchContent module. You can download the CPM.cmake from the
-project [releases page](https://github.com/cpm-cmake/CPM.cmake/releases/latest).
+[FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) is a built-in CMake module that allows you to fetch and incorporate external dependencies directly into your project.
+It eliminates the need for additional package managers and simplifies dependency management.
 
-With CPM enabled, you can bring this library in using the following command:
+You can bring this library in using the following command:
 
-```
-CPMAddPackage ( "gh:baderouaich/BitmapPlusPlus#master" )
+```cmake
+include(FetchContent)
+FetchContent_Declare(BitmapPlusPlus
+        GIT_REPOSITORY "https://github.com/baderouaich/BitmapPlusPlus"
+        GIT_TAG "master"
+)
+FetchContent_MakeAvailable(BitmapPlusPlus)
 ```
 
 And link it to your target using:
 
-```
-target_link_libraries( ${TARGET} LINK_PRIVATE bpp::BitmapPlusPlus )
+```cmake
+target_link_libraries(${TARGET} LINK_PRIVATE bpp::BitmapPlusPlus)
 ```
 
 Note that your target needs to compile with C++17 or newer. After that, you can simply include the library in your code:

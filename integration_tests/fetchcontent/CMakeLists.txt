@@ -10,8 +10,6 @@ FetchContent_Declare(BitmapPlusPlus
 )
 FetchContent_MakeAvailable(BitmapPlusPlus)
 
-add_executable(${PROJECT_NAME}
-        "${CMAKE_CURRENT_SOURCE_DIR}/Main.cpp"
-)
+add_executable(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Main.cpp")
 
 target_link_libraries(${PROJECT_NAME} LINK_PRIVATE bmp::BitmapPlusPlus)

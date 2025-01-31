@@ -140,9 +140,7 @@ namespace bmp {
         m_height(std::exchange(other.m_height, 0)) {
     }
 
-    virtual ~Bitmap() noexcept {
-      m_pixels.clear();
-    }
+    virtual ~Bitmap() noexcept = default;
 
   public: /* Draw Primitives */
     /**
@@ -471,7 +469,8 @@ namespace bmp {
     *	Vertically flips the bitmap and returns the flipped version
     *
     */
-    Bitmap flip_v() {
+    [[nodiscard("flip_v() is immutable")]]
+    Bitmap flip_v() const {
         Bitmap finished(m_width, m_height);
         for (std::int32_t x = 0; x < m_width; ++x) {
             for (std::int32_t y = 0; y < m_height; ++y) {
@@ -486,7 +485,8 @@ namespace bmp {
     *	Horizontally flips the bitmap and returns the flipped version
     *
     */
-    Bitmap flip_h() {
+    [[nodiscard("flip_h() is immutable")]]
+    Bitmap flip_h() const {
         Bitmap finished(m_width, m_height);
         for (std::int32_t y = 0; y < m_height; ++y) {
             for (std::int32_t x = 0; x < m_width; ++x) {
@@ -501,7 +501,8 @@ namespace bmp {
     *	Rotates the bitmap to the right and returns the rotated version
     *
     */
-    Bitmap rotate_90_left() {
+    [[nodiscard("rotate_90_left() is immutable")]]
+    Bitmap rotate_90_left() const {
         Bitmap finished(m_height, m_width); // Swap dimensions
 
         for (std::int32_t y = 0; y < m_height; ++y) {
@@ -519,7 +520,8 @@ namespace bmp {
     *	Rotates the bitmap to the left and returns the rotated version
     *
     */
-    Bitmap rotate_90_right() {
+    [[nodiscard("rotate_90_right() is immutable")]]
+    Bitmap rotate_90_right() const {
         Bitmap finished(m_height, m_width); // Swap dimensions
         for (std::int32_t y = 0; y < m_height; ++y) {
             std::int32_t y_offset = y * m_width; // Precompute row start index
@@ -530,6 +532,7 @@ namespace bmp {
 
         return finished;
     }
+
     /**
      *	Saves Bitmap pixels into a file
      *   @throws bmp::Exception on error
@@ -647,12 +650,6 @@ namespace bmp {
      */
     [[nodiscard]] constexpr std::size_t IX(const std::int32_t x, const std::int32_t y) const noexcept {
       return static_cast<std::size_t>(x) + static_cast<std::size_t>(m_width) * static_cast<std::size_t>(y);
-    }
-    /**
-    *	Converts 2D x,y coords into 1D index, with changed width
-    */
-    [[nodiscard]] constexpr std::size_t IX(const std::int32_t x, const std::int32_t y, const std::int32_t width) const noexcept {
-        return static_cast<std::size_t>(x) + static_cast<std::size_t>(m_width) * static_cast<std::size_t>(y);
     }
     /**
      *	Returns true if x,y coords are within boundaries

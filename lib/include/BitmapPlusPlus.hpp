@@ -14,30 +14,30 @@
 
 namespace bmp {
   // Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)
-  static constexpr const std::uint16_t BITMAP_BUFFER_MAGIC = 0x4D42;
+  static constexpr std::uint16_t BITMAP_BUFFER_MAGIC = 0x4D42;
 
 #pragma pack(push, 1)
   struct BitmapHeader {
     /* Bitmap file header structure */
-    std::uint16_t magic; /* Magic number for file always BM which is 0x4D42 */
-    std::uint32_t file_size; /* Size of file */
-    std::uint16_t reserved1; /* Reserved */
-    std::uint16_t reserved2; /* Reserved */
+    std::uint16_t magic;       /* Magic number for file always BM which is 0x4D42 */
+    std::uint32_t file_size;   /* Size of file */
+    std::uint16_t reserved1;   /* Reserved */
+    std::uint16_t reserved2;   /* Reserved */
     std::uint32_t offset_bits; /* Offset to bitmap data */
     /* Bitmap file info structure */
-    std::uint32_t size; /* Size of info header */
-    std::int32_t width; /* Width of image */
-    std::int32_t height; /* Height of image */
-    std::uint16_t planes; /* Number of color planes */
-    std::uint16_t bits_per_pixel; /* Number of bits per pixel */
-    std::uint32_t compression; /* Type of compression to use */
-    std::uint32_t size_image; /* Size of image data */
+    std::uint32_t size;              /* Size of info header */
+    std::int32_t width;              /* Width of image */
+    std::int32_t height;             /* Height of image */
+    std::uint16_t planes;            /* Number of color planes */
+    std::uint16_t bits_per_pixel;    /* Number of bits per pixel */
+    std::uint32_t compression;       /* Type of compression to use */
+    std::uint32_t size_image;        /* Size of image data */
     std::int32_t x_pixels_per_meter; /* X pixels per meter */
     std::int32_t y_pixels_per_meter; /* Y pixels per meter */
-    std::uint32_t clr_used; /* Number of colors used */
-    std::uint32_t clr_important; /* Number of important colors */
+    std::uint32_t clr_used;          /* Number of colors used */
+    std::uint32_t clr_important;     /* Number of important colors */
   };
-
+  // Sanity check
   static_assert(sizeof(BitmapHeader) == 54, "Bitmap header size must be 54 bytes");
 
   struct Pixel {
@@ -45,19 +45,17 @@ namespace bmp {
     std::uint8_t g; /* Green value */
     std::uint8_t b; /* Red value */
 
-    constexpr Pixel() noexcept: r(0), g(0), b(0) {
+    constexpr Pixel() noexcept : r(0), g(0), b(0) {
     }
 
-    explicit constexpr Pixel(const std::int32_t rgb) noexcept: r((rgb >> 16) & 0xff), g((rgb >> 8) & 0xff),
-                                                               b((rgb >> 0x0) & 0xff) {
+    explicit constexpr Pixel(const std::int32_t rgb) noexcept : r((rgb >> 16) & 0xff), g((rgb >> 8) & 0xff), b((rgb >> 0x0) & 0xff) {
     }
 
-    constexpr Pixel(const std::uint8_t red, const std::uint8_t green,
-                    const std::uint8_t blue) noexcept: r(red), g(green), b(blue) {
+    constexpr Pixel(const std::uint8_t red, const std::uint8_t green, const std::uint8_t blue) noexcept : r(red), g(green), b(blue) {
     }
 
     constexpr bool operator==(const Pixel &other) const noexcept {
-      if (this == &other)
+      if (this == std::addressof(other))
         return true;
       return r == other.r && g == other.g && b == other.b;
     }
@@ -111,16 +109,10 @@ namespace bmp {
 
   class Bitmap {
   public:
-    Bitmap() noexcept
-      : m_pixels(),
-        m_width(0),
-        m_height(0) {
+    Bitmap() noexcept : m_pixels(), m_width(0), m_height(0) {
     }
 
-    explicit Bitmap(const std::string &filename)
-      : m_pixels(),
-        m_width(0),
-        m_height(0) {
+    explicit Bitmap(const std::string &filename) : m_pixels(), m_width(0), m_height(0) {
       this->load(filename);
     }
 
@@ -199,11 +191,11 @@ namespace bmp {
           std::to_string(height) + "): x,y,w or h out of bounds");
 
       for (std::int32_t dx = x; dx < x + width; ++dx) {
-        m_pixels[IX(dx, y)] = color; // top
+        m_pixels[IX(dx, y)] = color;              // top
         m_pixels[IX(dx, y + height - 1)] = color; // bottom
       }
       for (std::int32_t dy = y; dy < y + height; ++dy) {
-        m_pixels[IX(x, dy)] = color; // left
+        m_pixels[IX(x, dy)] = color;             // left
         m_pixels[IX(x + width - 1, dy)] = color; // right
       }
     }
@@ -238,8 +230,7 @@ namespace bmp {
       std::vector<std::pair<std::int32_t, std::int32_t> > vertices = {
         {x1, y1},
         {x2, y2},
-        {x3, y3}
-      };
+        {x3, y3}};
       std::sort(vertices.begin(), vertices.end(), [](const auto &a, const auto &b) {
         return a.second < b.second;
       });
@@ -366,7 +357,7 @@ namespace bmp {
      */
     Pixel &get(const std::int32_t x, const std::int32_t y) {
       if (!in_bounds(x, y))
-        throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
+        throw Exception("Bitmap::get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
       return m_pixels[IX(x, y)];
     }
 
@@ -375,7 +366,7 @@ namespace bmp {
      */
     [[nodiscard]] const Pixel &get(const std::int32_t x, const std::int32_t y) const {
       if (!in_bounds(x, y))
-        throw Exception("Bitmap::Get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
+        throw Exception("Bitmap::get(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
       return m_pixels[IX(x, y)];
     }
 
@@ -406,19 +397,19 @@ namespace bmp {
     explicit operator bool() const noexcept { return !(*this); }
 
     bool operator==(const Bitmap &image) const {
-      if (this != &image) {
-        return (m_width == image.m_width) &&
-               (m_height == image.m_height) &&
-               (std::memcmp(m_pixels.data(), image.m_pixels.data(), sizeof(Pixel) * m_pixels.size()) == 0);
+      if (this == std::addressof(image)) {
+        return true;
       }
-      return true;
+      return (m_width == image.m_width) &&
+             (m_height == image.m_height) &&
+             (std::memcmp(m_pixels.data(), image.m_pixels.data(), sizeof(Pixel) * m_pixels.size()) == 0);
     }
 
     bool operator!=(const Bitmap &image) const { return !(*this == image); }
 
     Bitmap &operator=(const Bitmap &image) // Copy assignment operator
     {
-      if (this != &image) {
+      if (this != std::addressof(image)) {
         m_width = image.m_width;
         m_height = image.m_height;
         m_pixels = image.m_pixels;
@@ -427,7 +418,7 @@ namespace bmp {
     }
 
     Bitmap &operator=(Bitmap &&image) noexcept {
-      if (this != &image) {
+      if (this != std::addressof(image)) {
         m_pixels = std::move(image.m_pixels);
         m_width = std::exchange(image.m_width, 0);
         m_height = std::exchange(image.m_height, 0);
@@ -459,7 +450,7 @@ namespace bmp {
      */
     void set(const std::int32_t x, const std::int32_t y, const Pixel color) {
       if (!in_bounds(x, y)) {
-        throw Exception("Bitmap::Set(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
+        throw Exception("Bitmap::set(" + std::to_string(x) + ", " + std::to_string(y) + "): x,y out of bounds");
       }
       m_pixels[IX(x, y)] = color;
     }
@@ -469,68 +460,68 @@ namespace bmp {
     *	Vertically flips the bitmap and returns the flipped version
     *
     */
-    [[nodiscard("flip_v() is immutable")]]
+    [[nodiscard("Bitmap::flip_v() is immutable")]]
     Bitmap flip_v() const {
-        Bitmap finished(m_width, m_height);
-        for (std::int32_t x = 0; x < m_width; ++x) {
-            for (std::int32_t y = 0; y < m_height; ++y) {
-                // Calculate the reverse y-index
-                finished.m_pixels[IX(x, y)] = m_pixels[IX(x, m_height - 1 - y)];
-            }
+      Bitmap finished(m_width, m_height);
+      for (std::int32_t x = 0; x < m_width; ++x) {
+        for (std::int32_t y = 0; y < m_height; ++y) {
+          // Calculate the reverse y-index
+          finished.m_pixels[IX(x, y)] = m_pixels[IX(x, m_height - 1 - y)];
         }
-        return finished;
+      }
+      return finished;
     }
 
     /**
     *	Horizontally flips the bitmap and returns the flipped version
     *
     */
-    [[nodiscard("flip_h() is immutable")]]
+    [[nodiscard("Bitmap::flip_h() is immutable")]]
     Bitmap flip_h() const {
-        Bitmap finished(m_width, m_height);
-        for (std::int32_t y = 0; y < m_height; ++y) {
-            for (std::int32_t x = 0; x < m_width; ++x) {
-                // Calculate the reverse x-index
-                finished.m_pixels[IX(x, y)] = m_pixels[IX(m_width - 1 - x, y)];
-            }
+      Bitmap finished(m_width, m_height);
+      for (std::int32_t y = 0; y < m_height; ++y) {
+        for (std::int32_t x = 0; x < m_width; ++x) {
+          // Calculate the reverse x-index
+          finished.m_pixels[IX(x, y)] = m_pixels[IX(m_width - 1 - x, y)];
         }
-        return finished;
+      }
+      return finished;
     }
 
     /**
     *	Rotates the bitmap to the right and returns the rotated version
     *
     */
-    [[nodiscard("rotate_90_left() is immutable")]]
+    [[nodiscard("Bitmap::rotate_90_left() is immutable")]]
     Bitmap rotate_90_left() const {
-        Bitmap finished(m_height, m_width); // Swap dimensions
+      Bitmap finished(m_height, m_width); // Swap dimensions
 
-        for (std::int32_t y = 0; y < m_height; ++y) {
-            std::int32_t y_offset = y * m_width; // Precompute row start index
-            for (std::int32_t x = 0; x < m_width; ++x) {
-                // Original pixel at (x, y) moves to (y, m_width - 1 - x)
-                finished.m_pixels[(m_width - 1 - x) * m_height + y] = m_pixels[y_offset + x];
-            }
+      for (std::int32_t y = 0; y < m_height; ++y) {
+        const std::int32_t y_offset = y * m_width; // Precompute row start index
+        for (std::int32_t x = 0; x < m_width; ++x) {
+          // Original pixel at (x, y) moves to (y, m_width - 1 - x)
+          finished.m_pixels[(m_width - 1 - x) * m_height + y] = m_pixels[y_offset + x];
         }
+      }
 
-        return finished;
+      return finished;
     }
 
     /**
     *	Rotates the bitmap to the left and returns the rotated version
     *
     */
-    [[nodiscard("rotate_90_right() is immutable")]]
+    [[nodiscard("Bitmap::rotate_90_right() is immutable")]]
     Bitmap rotate_90_right() const {
-        Bitmap finished(m_height, m_width); // Swap dimensions
-        for (std::int32_t y = 0; y < m_height; ++y) {
-            std::int32_t y_offset = y * m_width; // Precompute row start index
-            for (std::int32_t x = 0; x < m_width; ++x) {
-                finished.m_pixels[x * m_height + (m_height - 1 - y)] = m_pixels[y_offset + x];
-            }
+      Bitmap finished(m_height, m_width); // Swap dimensions
+      for (std::int32_t y = 0; y < m_height; ++y) {
+        const std::int32_t y_offset = y * m_width; // Precompute row start index
+        for (std::int32_t x = 0; x < m_width; ++x) {
+          finished.m_pixels[x * m_height + (m_height - 1 - y)] = m_pixels[y_offset + x];
         }
+      }
 
-        return finished;
+      return finished;
     }
 
     /**
@@ -564,9 +555,12 @@ namespace bmp {
       header.clr_important = 0;
 
       // Save bitmap to output file
-      if (std::ofstream ofs{filename, std::ios::binary}) {
+      if (std::ofstream ofs{filename, std::ios::binary}; ofs.good()) {
         // Write Header
         ofs.write(reinterpret_cast<const char *>(&header), sizeof(BitmapHeader));
+        if (!ofs.good()) {
+          throw Exception("Bitmap::save(\"" + filename.string() + "\"): Failed to write bitmap header to file.");
+        }
 
         // Write Pixels
         std::vector<std::uint8_t> line(row_size);
@@ -579,12 +573,12 @@ namespace bmp {
             line[i++] = color.r;
           }
           ofs.write(reinterpret_cast<const char *>(line.data()), line.size());
+          if (!ofs.good()) {
+            throw Exception("Bitmap::save(\"" + filename.string() + "\"): Failed to write bitmap pixels to file.");
+          }
         }
-
-        // Close File
-        ofs.close();
       } else
-        throw Exception("Bitmap::Save(\"" + filename.string() + "\"): Failed to save pixels to file.");
+        throw Exception("Bitmap::save(\"" + filename.string() + "\"): Failed to open file.");
     }
 
     /**
@@ -594,20 +588,18 @@ namespace bmp {
     void load(const std::filesystem::path &filename) {
       m_pixels.clear();
 
-      if (std::ifstream ifs{filename, std::ios::binary}) {
+      if (std::ifstream ifs{filename, std::ios::binary}; ifs.good()) {
         // Read Header
         std::unique_ptr<BitmapHeader> header(new BitmapHeader());
         ifs.read(reinterpret_cast<char *>(header.get()), sizeof(BitmapHeader));
 
         // Check if Bitmap file is valid
         if (header->magic != BITMAP_BUFFER_MAGIC) {
-          ifs.close();
-          throw Exception("Bitmap::Load(\"" + filename.string() + "\"): Unrecognized file format.");
+          throw Exception("Bitmap::load(\"" + filename.string() + "\"): Unrecognized file format.");
         }
         // Check if the Bitmap file has 24 bits per pixel (for now supporting only 24bpp bitmaps)
         if (header->bits_per_pixel != 24) {
-          ifs.close();
-          throw Exception("Bitmap::Load(\"" + filename.string() + "\"): Only 24 bits per pixel bitmaps supported.");
+          throw Exception("Bitmap::load(\"" + filename.string() + "\"): Only 24 bits per pixel bitmaps supported.");
         }
 
         // Seek the beginning of the pixels data
@@ -628,6 +620,8 @@ namespace bmp {
         std::vector<std::uint8_t> line(row_size);
         for (std::int32_t y = m_height - 1; y >= 0; --y) {
           ifs.read(reinterpret_cast<char *>(line.data()), line.size());
+          if (!ifs.good())
+            throw Exception("Bitmap::load(\"" + filename.string() + "\"): Failed to read bitmap pixels from file.");
           std::size_t i = 0;
           for (std::int32_t x = 0; x < m_width; ++x) {
             Pixel color{};
@@ -637,11 +631,8 @@ namespace bmp {
             m_pixels[IX(x, y)] = color;
           }
         }
-
-        // Close file
-        ifs.close();
       } else
-        throw Exception("Bitmap::Load(\"" + filename.string() + "\"): Failed to load bitmap pixels from file.");
+        throw Exception("Bitmap::load(\"" + filename.string() + "\"): Failed to load bitmap pixels from file.");
     }
 
   private: /* Utils */

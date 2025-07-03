@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fstream>    // std::*fstream
 #include <vector>     // std::vector
 #include <memory>     // std::unique_ptr
 #include <algorithm>  // std::fill
@@ -11,6 +10,13 @@
 #include <filesystem> // std::filesystem::path
 #include <stdexcept>  // std::runtime_error
 #include <utility>    // std::exchange
+
+#ifdef _WIN32
+#include <Windows.h> // Win32 Fs
+#else
+#include <cstdio> // FILE*
+#endif
+
 
 namespace bmp {
   // Magic number for Bitmap .bmp 24 bpp files (24/8 = 3 = rgb colors only)
@@ -105,6 +111,86 @@ namespace bmp {
   public:
     explicit Exception(const std::string &message) : std::runtime_error(message) {
     }
+  };
+
+  class File {
+  public:
+    enum class Mode { Read, Write };
+
+    File(const std::filesystem::path &path, Mode mode) {
+#ifdef _WIN32
+      DWORD access = (mode == Mode::Read) ? GENERIC_READ : GENERIC_WRITE;
+      DWORD creation = (mode == Mode::Read) ? OPEN_EXISTING : CREATE_ALWAYS;
+      handle = CreateFileW(
+        path.wstring().c_str(),
+        access,
+        0, nullptr,
+        creation,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr);
+      valid = (handle != INVALID_HANDLE_VALUE);
+#else
+      const char *fmode = (mode == Mode::Read) ? "rb" : "wb";
+      file = std::fopen(path.string().c_str(), fmode);
+#endif
+    }
+
+    ~File() {
+#ifdef _WIN32
+      if (handle != INVALID_HANDLE_VALUE) {
+        CloseHandle(handle);
+      }
+#else
+      if (file != nullptr) {
+        std::fclose(file);
+      }
+#endif
+    }
+
+    bool is_open() const noexcept {
+#ifdef _WIN32
+      return (handle != INVALID_HANDLE_VALUE);
+#else
+      return (file != nullptr);
+#endif
+    }
+
+    // Write binary buffer
+    bool write(const void *data, std::size_t size) const noexcept {
+#ifdef _WIN32
+      DWORD written;
+      return WriteFile(handle, data, static_cast<DWORD>(size), &written, nullptr) && written == size;
+#else
+      return std::fwrite(data, 1, size, file) == size;
+#endif
+    }
+
+    // Read binary buffer
+    bool read(void *buffer, std::size_t size) const noexcept {
+#ifdef _WIN32
+      DWORD read_bytes;
+      return ReadFile(handle, buffer, static_cast<DWORD>(size), &read_bytes, nullptr) && read_bytes == size;
+#else
+      return std::fread(buffer, 1, size, file) == size;
+#endif
+    }
+
+    bool seek(std::int64_t offset, int origin = 0) {
+#ifdef _WIN32
+      LARGE_INTEGER li;
+      li.QuadPart = offset;
+      return SetFilePointerEx(handle, li, nullptr, origin) != 0;
+#else
+      return std::fseek(file, static_cast<long>(offset), origin) == 0;
+#endif
+    }
+
+  private:
+#ifdef _WIN32
+    HANDLE handle = INVALID_HANDLE_VALUE;
+#else
+    FILE *file = nullptr;
+#endif
   };
 
   class Bitmap {
@@ -555,10 +641,10 @@ namespace bmp {
       header.clr_important = 0;
 
       // Save bitmap to output file
-      if (std::ofstream ofs{filename, std::ios::binary}; ofs.good()) {
+      if (File ofs{filename, File::Mode::Write}; ofs.is_open()) {
         // Write Header
-        ofs.write(reinterpret_cast<const char *>(&header), sizeof(BitmapHeader));
-        if (!ofs.good()) {
+        bool ok = ofs.write(reinterpret_cast<const char *>(&header), sizeof(BitmapHeader));
+        if (!ok) {
           throw Exception("Bitmap::save(\"" + filename.string() + "\"): Failed to write bitmap header to file.");
         }
 
@@ -572,8 +658,8 @@ namespace bmp {
             line[i++] = color.g;
             line[i++] = color.r;
           }
-          ofs.write(reinterpret_cast<const char *>(line.data()), line.size());
-          if (!ofs.good()) {
+          ok = ofs.write(reinterpret_cast<const char *>(line.data()), line.size());
+          if (!ok) {
             throw Exception("Bitmap::save(\"" + filename.string() + "\"): Failed to write bitmap pixels to file.");
           }
         }
@@ -587,11 +673,13 @@ namespace bmp {
      */
     void load(const std::filesystem::path &filename) {
       m_pixels.clear();
-
-      if (std::ifstream ifs{filename, std::ios::binary}; ifs.good()) {
+      if (File ifs{filename, File::Mode::Read}; ifs.is_open()) {
         // Read Header
         std::unique_ptr<BitmapHeader> header(new BitmapHeader());
-        ifs.read(reinterpret_cast<char *>(header.get()), sizeof(BitmapHeader));
+        bool ok = ifs.read(reinterpret_cast<char *>(header.get()), sizeof(BitmapHeader));
+        if (!ok) {
+          throw Exception("Bitmap::load(\"" + filename.string() + "\"): Could not read BitmapHeader.");
+        }
 
         // Check if Bitmap file is valid
         if (header->magic != BITMAP_BUFFER_MAGIC) {
@@ -606,7 +694,10 @@ namespace bmp {
         // Note: We can't just assume we're there right after we read the BitmapHeader
         // Because some editors like Gimp might put extra information after the header.
         // Thanks to @seeliger-ec
-        ifs.seekg(header->offset_bits);
+        ok = ifs.seek(header->offset_bits);
+        if (!ok) {
+          throw Exception("Bitmap::load(\"" + filename.string() + "\"): Could not seek pixel data offset.");
+        }
 
         // Set width & height
         m_width = header->width;
@@ -619,8 +710,8 @@ namespace bmp {
         const std::int32_t row_size = m_width * 3 + m_width % 4;
         std::vector<std::uint8_t> line(row_size);
         for (std::int32_t y = m_height - 1; y >= 0; --y) {
-          ifs.read(reinterpret_cast<char *>(line.data()), line.size());
-          if (!ifs.good())
+          ok = ifs.read(reinterpret_cast<char *>(line.data()), line.size());
+          if (!ok)
             throw Exception("Bitmap::load(\"" + filename.string() + "\"): Failed to read bitmap pixels from file.");
           std::size_t i = 0;
           for (std::int32_t x = 0; x < m_width; ++x) {

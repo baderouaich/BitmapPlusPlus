@@ -128,7 +128,6 @@ namespace bmp {
         creation,
         FILE_ATTRIBUTE_NORMAL,
         nullptr);
-      valid = (handle != INVALID_HANDLE_VALUE);
 #else
       const char *fmode = (mode == Mode::Read) ? "rb" : "wb";
       file = std::fopen(path.string().c_str(), fmode);
